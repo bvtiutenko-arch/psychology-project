@@ -49,6 +49,8 @@ const updateSW = registerSW({
   },
 });
 
+console.log('Service Worker registration initiated.'); // Log for development verification
+
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <BrowserRouter> {/* Wrap App with BrowserRouter */}
