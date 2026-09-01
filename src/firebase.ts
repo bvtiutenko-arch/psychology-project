@@ -1,6 +1,6 @@
 import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+import { getFirestore, doc, setDoc, getDoc } from "firebase/firestore";
 
 // Your web app's Firebase configuration
 // IMPORTANT: Replace with your actual Firebase config values from your Firebase project console
@@ -19,9 +19,25 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const googleProvider = new GoogleAuthProvider();
 
-const signInWithGoogle = () => {
+const signInWithGoogle = async () => {
   // This function will be used by the UI to trigger Google Sign-In
-  return signInWithPopup(auth, googleProvider);
+  const result = await signInWithPopup(auth, googleProvider);
+  const user = result.user;
+
+  // Check if user exists in Firestore, if not, create a new document
+  const userDocRef = doc(db, "users", user.uid);
+  const userDocSnap = await getDoc(userDocRef);
+
+  if (!userDocSnap.exists()) {
+    await setDoc(userDocRef, {
+      uid: user.uid,
+      displayName: user.displayName,
+      email: user.email,
+      photoURL: user.photoURL,
+      createdAt: new Date(),
+    });
+  }
+  return result;
 };
 
 export { auth, db, signInWithGoogle };
