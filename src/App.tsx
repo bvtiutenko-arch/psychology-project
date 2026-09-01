@@ -7,6 +7,7 @@ import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-
 import CausalMatrixForm from './components/causal/CausalMatrixForm'; // Import CausalMatrixForm
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { syncPendingCausalMatrices, getPendingCausalMatricesCount, clearPendingCausalMatricesForUser } from './services/offlineSync';
+import { saveSessionHistory } from './services/db'; // Import DB function
 import toast from 'react-hot-toast';
 import { RotateCw, Download } from 'lucide-react';
 
@@ -187,6 +188,12 @@ function App() {
 
       if (newPendingCount === 0) {
         toast.success('Todas las matrices pendientes han sido sincronizadas.');
+        // Save session history for manual sync
+        await saveSessionHistory({
+          userId: user.uid,
+          sessionType: 'manual_sync',
+          responses: { success: true, remaining: newPendingCount }
+        }).catch((e) => console.error('Error saving sync session history:', e));
       } else {
         toast.error(`Se sincronizaron algunas matrices. Quedan ${newPendingCount} pendientes.`);
       }

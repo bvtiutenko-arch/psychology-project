@@ -1,4 +1,5 @@
 import { signInWithGoogle } from '../../firebase';
+import { saveSessionHistory } from '../../services/db';
 import toast from 'react-hot-toast';
 
 const GoogleIcon = () => (
@@ -13,7 +14,13 @@ const GoogleIcon = () => (
 const Login = () => {
   const handleLogin = async () => {
     try {
-      await signInWithGoogle();
+      const result = await signInWithGoogle();
+      // Save session history for login
+      await saveSessionHistory({
+        userId: result.user.uid,
+        sessionType: 'login',
+        responses: { method: 'google' }
+      });
       toast.success('¡Inicio de sesión exitoso!');
     } catch (error) {
       console.error(error);
