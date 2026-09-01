@@ -1,5 +1,5 @@
 import { precacheAndRoute } from 'workbox-precaching';
-import { registerRoute } from 'workbox-routing';
+import { registerRoute, setCatchHandler } from 'workbox-routing';
 import { CacheFirst, NetworkFirst, StaleWhileRevalidate } from 'workbox-strategies';
 import { ExpirationPlugin } from 'workbox-expiration';
 import { CacheableResponsePlugin } from 'workbox-cacheable-response';
@@ -66,32 +66,15 @@ registerRoute(
   })
 );
 
-// Offline fallback for navigation requests
-self.addEventListener('fetch', (event) => {
-  if (event.request.mode === 'navigate') {
-    event.respondWith(
-      (async () => {
-        try {
-          const preloadResponse = await event.preloadResponse;
-          if (preloadResponse) {
-            return preloadResponse;
-          }
-
-          const networkResponse = await fetch(event.request);
-          return networkResponse;
-        } catch (error) {
-          // If network fails, try to get from cache
-          const cache = await caches.open('pages');
-          const cachedResponse = await cache.match(event.request);
-          if (cachedResponse) {
-            return cachedResponse;
-          }
-          // If not in cache, serve offline.html
-          return caches.match('/offline.html') || new Response('Offline', { status: 503, statusText: 'Service Unavailable' });
-        }
-      })()
-    );
+// This will be the global catch handler for any failed requests.
+// It's particularly useful for navigation requests that fail to fetch or find a cached response.
+setCatchHandler(async ({ request }) => {
+  if (request.mode === 'navigate') {
+    return caches.match('/offline.html');
   }
+  // For other types of requests, re-throw the error or return a generic error response
+  // depending on desired behavior. Here, we'll just return undefined to let the browser handle it.
+  return undefined;
 });
 
 // Handle message from client to skip waiting and activate new service worker
