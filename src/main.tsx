@@ -4,6 +4,7 @@ import App from './App.tsx';
 import './index.css';
 import { registerSW } from 'virtual:pwa-register';
 import toast from 'react-hot-toast'; // Import toast
+import { BrowserRouter } from 'react-router-dom'; // Import BrowserRouter
 
 // Register the service worker
 const updateSW = registerSW({
@@ -20,7 +21,9 @@ const updateSW = registerSW({
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <App />
+    <BrowserRouter> {/* Wrap App with BrowserRouter */}
+      <App />
+    </BrowserRouter>
   </React.StrictMode>,
 );
 
