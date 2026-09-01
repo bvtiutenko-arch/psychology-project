@@ -25,7 +25,6 @@ function App() {
         {user ? (
           <>
             <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/causal-matrix" element={<CausalMatrixForm />} />
             {/* Redirect any other path to dashboard if authenticated */}
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </>
