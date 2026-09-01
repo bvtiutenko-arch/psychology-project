@@ -101,3 +101,17 @@ self.addEventListener('message', (event) => {
   }
 });
 
+// Add sync event listener for background sync
+self.addEventListener('sync', (event) => {
+  if (event.tag === 'sync-causal-matrices') {
+    console.log('Service Worker: Background sync event received for causal matrices.');
+    event.waitUntil(
+      self.clients.matchAll().then((clients) => {
+        clients.forEach((client) => {
+          client.postMessage({ type: 'SYNC_PENDING_CAUSAL_MATRICES' });
+        });
+      })
+    );
+  }
+});
+

@@ -168,6 +168,17 @@ const CausalMatrixForm = () => {
       toast.success('Matriz Causal guardada localmente. Se sincronizará cuando haya conexión.');
       setShowSummary(false); // Hide summary
 
+      // Register background sync event
+      if ('serviceWorker' in navigator && 'SyncManager' in window) {
+        navigator.serviceWorker.ready.then(registration => {
+          registration.sync.register('sync-causal-matrices')
+            .then(() => console.log('Background sync registered: sync-causal-matrices'))
+            .catch(err => console.error('Failed to register background sync:', err));
+        });
+      } else {
+        console.warn('Background Sync API not supported or service worker not ready.');
+      }
+
       // Attempt to sync immediately in case connection was restored quickly
       await syncPendingCausalMatrices(user.uid);
     } finally {

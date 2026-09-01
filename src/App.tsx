@@ -99,9 +99,32 @@ function App() {
 
     // Initial count fetch and setup for periodic refresh
     refreshPendingCount();
+    // Add listener for messages from service worker
+    const handleServiceWorkerMessage = async (event: MessageEvent) => {
+      if (event.data && event.data.type === 'SYNC_PENDING_CAUSAL_MATRICES') {
+        console.log('Service Worker requested sync of pending causal matrices.');
+        if (user) {
+          toast.loading('Sincronizando matrices pendientes en segundo plano...');
+          await syncPendingCausalMatrices(user.uid);
+          await refreshPendingCount();
+          toast.dismiss();
+          toast.success('Sincronización de matrices pendientes completada.');
+        } else {
+          console.warn('Cannot sync pending matrices: User not authenticated.');
+        }
+      }
+    };
+
+    navigator.serviceWorker.addEventListener('message', handleServiceWorkerMessage);
+    window.addEventListener('online', handleOnlineStatusChange);
+    window.addEventListener('offline', handleOnlineStatusChange);
+
+    // Initial count fetch and setup for periodic refresh
+    refreshPendingCount();
     const intervalId = setInterval(refreshPendingCount, 30000); // Refresh every 30 seconds
 
     return () => {
+      navigator.serviceWorker.removeEventListener('message', handleServiceWorkerMessage); // Cleanup
       window.removeEventListener('online', handleOnlineStatusChange);
       window.removeEventListener('offline', handleOnlineStatusChange);
       clearInterval(intervalId);
