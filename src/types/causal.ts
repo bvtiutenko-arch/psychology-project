@@ -41,7 +41,7 @@ export enum FeedbackLoop {
 }
 
 // The full causal matrix for a single event
-export interface CausalMatrix {
+export interface CausalMatrix extends MentalMetrics {
   id: string;
   timestamp: Date;
   userId: string;
