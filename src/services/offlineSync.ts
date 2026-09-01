@@ -1,5 +1,5 @@
 import { openDB, IDBPDatabase } from 'idb';
-import { CausalInputs, PendingCausalMatrix, MentalMetrics, InterventionStrategy } from '../types/causal';
+import { CausalInputs, PendingCausalMatrix, CausalMatrixData } from '../types/causal'; // Import CausalMatrixData
 import { db } from '../firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import toast from 'react-hot-toast';
