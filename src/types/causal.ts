@@ -1,3 +1,5 @@
+import { FieldValue } from 'firebase/firestore';
+
 /**
  * Defines the core types and enums for the Causal Matrix feature.
  * These enums represent the various components of a user's mental pattern.
@@ -76,7 +78,7 @@ export interface PendingCausalMatrix extends CausalInputs {
 export type CausalMatrixData = CausalInputs & Omit<MentalMetrics, 'interventionStrategies'> & {
   userId: string;
   interventionStrategies: InterventionStrategy[];
-  timestamp: any; // Use 'any' or 'FieldValue' from firebase/firestore for serverTimestamp()
+  timestamp: FieldValue;
 };
 
 // The full causal matrix for a single event (as read from Firestore)
