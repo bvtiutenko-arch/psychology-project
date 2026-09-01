@@ -14,31 +14,31 @@ const weights = {
     [RootWound.AnxiousAttachment]: { loopIntensity: 20, coupleFriction: 25, clarity: -10 },
     [RootWound.InvalidationFear]: { loopIntensity: 15, coupleFriction: 20, clarity: -15 },
     [RootWound.ProtectivePerfectionism]: { loopIntensity: 10, coupleFriction: 10, clarity: -20 },
-    [RootWound.TraumaticHypervigilance]: { loopIntensity: 25, coupleFriction: 15, clarity: -25, sleepRisk: 10 },
+    [RootWound.TraumaticHypervigilance]: { loopIntensity: 25, coupleFriction: 15, clarity: -25, sleepLatencyRisk: 10 },
   },
   triggerEvent: {
     [TriggerEvent.SeenMessageNoReply]: { loopIntensity: 25, coupleFriction: 20, clarity: -15 },
     [TriggerEvent.ColdTone]: { loopIntensity: 20, coupleFriction: 25, clarity: -10 },
-    [TriggerEvent.NightSilence]: { loopIntensity: 15, coupleFriction: 15, sleepRisk: 20 },
-    [TriggerEvent.UnexpectedNotification]: { loopIntensity: 10, sleepRisk: 15 },
+    [TriggerEvent.NightSilence]: { loopIntensity: 15, coupleFriction: 15, sleepLatencyRisk: 20 },
+    [TriggerEvent.UnexpectedNotification]: { loopIntensity: 10, sleepLatencyRisk: 15 },
   },
   cognitiveBias: {
     [CognitiveBias.MindReading]: { loopIntensity: 20, coupleFriction: 20, clarity: -25 },
-    [CognitiveBias.Catastrophizing]: { loopIntensity: 25, clarity: -30, sleepRisk: 15 },
+    [CognitiveBias.Catastrophizing]: { loopIntensity: 25, clarity: -30, sleepLatencyRisk: 15 },
     [CognitiveBias.EmotionalReasoning]: { loopIntensity: 15, clarity: -20 },
     [CognitiveBias.AllOrNothing]: { loopIntensity: 10, coupleFriction: 15, clarity: -15 },
   },
   somaticCompulsion: {
     [SomaticCompulsion.ImpulsiveMessaging]: { loopIntensity: 20, coupleFriction: 30 },
     [SomaticCompulsion.LastSeenChecking]: { loopIntensity: 25, coupleFriction: 10 },
-    [SomaticCompulsion.InfiniteScrolling]: { loopIntensity: 15, sleepRisk: 20 },
-    [SomaticCompulsion.PhysicalTension]: { sleepRisk: 10, loopIntensity: 5 },
+    [SomaticCompulsion.InfiniteScrolling]: { loopIntensity: 15, sleepLatencyRisk: 20 },
+    [SomaticCompulsion.PhysicalTension]: { sleepLatencyRisk: 10, loopIntensity: 5 },
   },
   feedbackLoop: {
     [FeedbackLoop.RelationshipExhaustion]: { coupleFriction: 30, clarity: -10 },
     [FeedbackLoop.SelfEsteemDrop]: { loopIntensity: 10, clarity: -20 },
-    [FeedbackLoop.NightCortisol]: { loopIntensity: 15, sleepRisk: 30 },
-    [FeedbackLoop.Insomnia]: { sleepRisk: 40, clarity: -15 },
+    [FeedbackLoop.NightCortisol]: { loopIntensity: 15, sleepLatencyRisk: 30 },
+    [FeedbackLoop.Insomnia]: { sleepLatencyRisk: 40, clarity: -15 },
     [FeedbackLoop.BrainFog]: { clarity: -30 },
   },
 };
@@ -72,7 +72,7 @@ export const calculateMentalMetrics = (inputs: CausalInputs): MentalMetrics => {
       loopIntensity += layerWeights.loopIntensity || 0;
       coupleFriction += layerWeights.coupleFriction || 0;
       clarityIndex += layerWeights.clarity || 0;
-      sleepLatencyRisk += layerWeights.sleepRisk || 0;
+      sleepLatencyRisk += layerWeights.sleepLatencyRisk || 0;
     }
   }
 
