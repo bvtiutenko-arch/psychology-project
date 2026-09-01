@@ -8,6 +8,7 @@ import CausalMatrixForm from './components/causal/CausalMatrixForm'; // Import C
 import { useEffect, useState } from 'react';
 import { syncPendingCausalMatrices, getPendingCausalMatricesCount } from './services/offlineSync';
 import toast from 'react-hot-toast'; // Explicitly import toast
+import { RotateCw, Download } from 'lucide-react'; // Import Lucide icons
 
 function App() {
   const { user, loading } = useAuth();
@@ -184,9 +185,7 @@ function App() {
             title="Sincronizar matrices pendientes"
           >
             {pendingMatricesCount} Pendiente{pendingMatricesCount > 1 ? 's' : ''}
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-3 h-3 ml-1">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.181m0-4.991-3.181-3.181m0 8.25 3.181 3.181m0-4.991-3.181-3.181A9.347 9.347 0 0 0 5.942 3.563H5.4M7.487 3.51H18.5a2.25 2.25 0 0 1 2.25 2.25v10.5a2.25 2.25 0 0 1-2.25 2.25H7.488m-4.5-8.25h11.25" />
-            </svg>
+            <RotateCw className="w-3 h-3 ml-1" />
           </button>
         )}
         {deferredPrompt && !isAppInstalled && (
@@ -196,9 +195,7 @@ function App() {
             title="Instalar aplicación"
           >
             Instalar
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-3 h-3 ml-1">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
-            </svg>
+            <Download className="w-3 h-3 ml-1" />
           </button>
         )}
       </div>
