@@ -91,9 +91,11 @@ self.addEventListener('message', (event) => {
 self.addEventListener('sync', (event) => {
   if (event.tag === 'sync-causal-matrices') {
     console.log('Service Worker: Background sync event received for causal matrices.');
+    // Notify all open clients that a background sync for causal matrices has occurred
     event.waitUntil(
       self.clients.matchAll().then((clients) => {
         clients.forEach((client) => {
+          console.log(`Service Worker: Notifying client ${client.id} about SYNC_PENDING_CAUSAL_MATRICES`);
           client.postMessage({ type: 'SYNC_PENDING_CAUSAL_MATRICES' });
         });
       })
