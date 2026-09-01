@@ -22,12 +22,12 @@ const db = getFirestore(app);
 enableIndexedDbPersistence(db).catch((err) => {
   if (err.code === 'failed-precondition') {
     // Multiple tabs open, persistence can only be enabled in one tab at a time.
-    // console.warn('Firestore persistence failed: Multiple tabs open, or another tab already enabled persistence.');
+    console.warn('Firestore persistence failed: Multiple tabs open, or another tab already enabled persistence.');
   } else if (err.code === 'unimplemented') {
     // The current browser does not support all of the features required to enable persistence.
-    // console.warn('Firestore persistence failed: Browser does not support all required features.');
+    console.warn('Firestore persistence failed: Browser does not support all required features.');
   } else {
-    // console.error('Firestore persistence failed:', err);
+    console.error('Firestore persistence failed:', err);
   }
 });
 
