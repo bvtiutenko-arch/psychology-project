@@ -75,7 +75,10 @@ self.addEventListener('activate', (event) => {
           return null;
         })
       );
-    }).then(() => self.clients.claim())
+    }).then(() => {
+      self.clients.claim();
+      console.log('PWA Service Worker: Clients claimed.');
+    })
   );
 });
 
