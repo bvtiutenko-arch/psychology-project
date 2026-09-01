@@ -48,7 +48,7 @@ registerRoute(
 // This is a placeholder, actual Firestore caching might need more specific rules
 registerRoute(
   ({ url }) => url.origin === 'https://firestore.googleapis.com',
-  new NetworkFirst({
+  new StaleWhileRevalidate({ // Changed from NetworkFirst to StaleWhileRevalidate for better offline experience
     cacheName: 'firestore-data',
     plugins: [
       new CacheableResponsePlugin({
