@@ -12,7 +12,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 // Register service worker
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/src/service-worker.ts', { type: 'module' })
+    // Register the service worker from the root of the domain
+    // The build process should place the compiled service worker at /service-worker.js
+    navigator.serviceWorker.register('/service-worker.js')
       .then(registration => {
         console.log('Service Worker registered with scope:', registration.scope);
       })
