@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
-import { db } from '../../firebase';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
-import { CausalInputs, RootWound, TriggerEvent, CognitiveBias, SomaticCompulsion, FeedbackLoop, MentalMetrics } from '../../types/causal';
+import { CausalInputs, RootWound, TriggerEvent, CognitiveBias, SomaticCompulsion, FeedbackLoop, MentalMetrics, CausalMatrixData } from '../../types/causal';
 import toast from 'react-hot-toast';
 import { calculateCausalMatrixMetrics } from '../../services/causalEngine';
 import { getMetricColorClass } from '../../lib/metrics';
 import SelectField from '../ui/SelectField';
 import { savePendingCausalMatrix, syncPendingCausalMatrices } from '../../services/offlineSync';
+import { saveCausalMatrix } from '../../services/db';
+import { serverTimestamp } from 'firebase/firestore';
 
 const isDevelopment = import.meta.env.DEV; // Determine if in development environment
 
@@ -157,7 +157,7 @@ const CausalMatrixForm = () => {
         interventionStrategies, // Store strategies separately
         timestamp: serverTimestamp(),
       };
-      await addDoc(collection(db, 'causal_matrices'), dataToStore);
+      await saveCausalMatrix(dataToStore);
 
       setLatestMetrics({ ...mentalMetricsWithoutStrategies, interventionStrategies });
       toast.success('Matriz Causal registrada con éxito.');
