@@ -36,8 +36,18 @@ registerRoute(
     plugins: [
       {
         handlerDidError: async ({ request }) => {
-          console.log(`PWA Service Worker: NetworkFirst failed for ${request.url}. Serving offline page.`);
-          return caches.match(OFFLINE_URL);
+          console.warn(`PWA Service Worker: NetworkFirst failed for ${request.url}. Attempting to serve offline page.`);
+          const offlinePage = await caches.match(OFFLINE_URL);
+          if (offlinePage) {
+            return offlinePage;
+          }
+          // If the offline page itself is not cached, return a generic fallback
+          console.error('PWA Service Worker: Offline page not found in cache. Serving generic offline fallback.');
+          return new Response('<h1>Offline</h1><p>You are currently offline.</p>', {
+            headers: { 'Content-Type': 'text/html' },
+            status: 503,
+            statusText: 'Service Unavailable',
+          });
         },
       },
     ],
