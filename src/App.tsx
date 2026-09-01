@@ -5,7 +5,7 @@ import Spinner from './components/ui/Spinner';
 import { Toaster } from 'react-hot-toast';
 import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom'; // Import routing components
 import CausalMatrixForm from './components/causal/CausalMatrixForm'; // Import CausalMatrixForm
-import { useEffect, useState, useRef } from 'react'; // Import useRef
+import { useEffect, useState, useRef, useCallback } from 'react'; // Import useRef, useCallback
 import { syncPendingCausalMatrices, getPendingCausalMatricesCount, clearPendingCausalMatricesForUser } from './services/offlineSync'; // Import clearPendingCausalMatricesForUser
 import toast from 'react-hot-toast'; // Explicitly import toast
 import { RotateCw, Download } from 'lucide-react'; // Import Lucide icons
@@ -22,14 +22,14 @@ function App() {
   const [isAppInstalled, setIsAppInstalled] = useState(false); // State to track if app is installed
 
   // Function to refresh the pending matrices count
-  const refreshPendingCount = async () => {
+  const refreshPendingCount = useCallback(async () => {
     if (user) {
       const count = await getPendingCausalMatricesCount();
       setPendingMatricesCount(count);
     } else {
       setPendingMatricesCount(0);
     }
-  };
+  }, [user]); // Dependency on user
 
   // Effect for PWA installation prompt
   useEffect(() => {
