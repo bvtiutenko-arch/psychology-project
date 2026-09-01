@@ -43,6 +43,7 @@ const updateSW = registerSW({
     ), { duration: Infinity }); // Show indefinitely until user acts
   },
   onOfflineReady() {
+    console.log('PWA is ready for offline use!'); // Log for debugging/verification
     toast.success('¡La aplicación está lista para funcionar sin conexión!'); // Show a toast notification
   },
 });
