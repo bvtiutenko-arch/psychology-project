@@ -75,14 +75,10 @@ const CausalMatrixForm = () => {
 
       const mentalMetrics = calculateMentalMetrics(causalInputs);
 
-      const newMatrixData = {
+      await addDoc(collection(db, 'causal_matrices'), {
         userId: user.uid,
         ...causalInputs,
         ...mentalMetrics,
-      };
-
-      await addDoc(collection(db, 'causal_matrices'), {
-        ...newMatrixData,
         timestamp: serverTimestamp(),
       });
 
