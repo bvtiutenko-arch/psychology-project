@@ -74,9 +74,13 @@ setCatchHandler(async ({ request }) => {
   if (request.mode === 'navigate') {
     return caches.match('/offline.html');
   }
-  // For other types of requests, re-throw the error or return a generic error response
-  // depending on desired behavior. Here, we'll just return undefined to let the browser handle it.
-  return undefined;
+  // For other types of requests, return a generic network error response.
+  // This provides a more consistent offline experience than letting the browser handle it.
+  return new Response('Network error', {
+    status: 503,
+    statusText: 'Service Unavailable',
+    headers: new Headers({ 'Content-Type': 'text/plain' })
+  });
 });
 
 // Handle message from client to skip waiting and activate new service worker
