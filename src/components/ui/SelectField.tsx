@@ -9,10 +9,14 @@ interface SelectFieldProps {
 }
 
 const SelectField: React.FC<SelectFieldProps> = ({ label, value, onChange, enumObject, disabled = false }) => {
+  // Generate a simple ID from the label for accessibility
+  const selectId = `select-${label.toLowerCase().replace(/\s+/g, '-')}`;
+
   return (
     <div className="mb-4">
-      <label className="block text-slate-700 text-sm font-bold mb-2">{label}</label>
+      <label htmlFor={selectId} className="block text-slate-700 text-sm font-bold mb-2">{label}</label>
       <select
+        id={selectId} // Add id here for accessibility
         value={value}
         onChange={onChange}
         className="shadow border rounded w-full py-2 px-3 text-slate-700 leading-tight focus:outline-none focus:shadow-outline bg-white"
