@@ -4,6 +4,7 @@ import { VitePWA } from 'vite-plugin-pwa';
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  base: '/', // Ensure base path is correct for Firebase Hosting
   plugins: [
     react(),
     VitePWA({
@@ -26,4 +27,7 @@ export default defineConfig({
       },
     }),
   ],
+  build: {
+    outDir: 'dist', // Ensure output directory is 'dist' for Firebase Hosting
+  },
 });
