@@ -78,6 +78,26 @@ export async function clearPendingCausalMatrix(id: string): Promise<void> {
 }
 
 /**
+ * Removes all pending causal matrices for a specific user from IndexedDB.
+ * This is typically called on user logout to ensure data privacy and cleanup.
+ * @param userId The ID of the user whose pending matrices should be removed.
+ */
+export async function clearPendingCausalMatricesForUser(userId: string): Promise<void> {
+  const database = await initDB();
+  const tx = database.transaction(STORE_NAME, 'readwrite');
+  const store = tx.objectStore(STORE_NAME);
+  const allMatrices = await store.getAll();
+
+  const matricesToDelete = allMatrices.filter(matrix => matrix.userId === userId);
+
+  for (const matrix of matricesToDelete) {
+    await store.delete(matrix.id);
+  }
+  await tx.done;
+  console.log(`Cleared ${matricesToDelete.length} pending causal matrices for user ${userId}.`);
+}
+
+/**
  * Attempts to synchronize all pending causal matrices from IndexedDB to Firestore.
  * @param userId The ID of the current user.
  */

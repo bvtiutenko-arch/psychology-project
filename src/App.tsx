@@ -5,8 +5,8 @@ import Spinner from './components/ui/Spinner';
 import { Toaster } from 'react-hot-toast';
 import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom'; // Import routing components
 import CausalMatrixForm from './components/causal/CausalMatrixForm'; // Import CausalMatrixForm
-import { useEffect, useState } from 'react';
-import { syncPendingCausalMatrices, getPendingCausalMatricesCount } from './services/offlineSync';
+import { useEffect, useState, useRef } from 'react'; // Import useRef
+import { syncPendingCausalMatrices, getPendingCausalMatricesCount, clearPendingCausalMatricesForUser } from './services/offlineSync'; // Import clearPendingCausalMatricesForUser
 import toast from 'react-hot-toast'; // Explicitly import toast
 import { RotateCw, Download } from 'lucide-react'; // Import Lucide icons
 
@@ -14,6 +14,7 @@ function App() {
   const { user, loading } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+  const prevUserIdRef = useRef<string | null>(null); // To store the previous user ID for logout cleanup
 
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [pendingMatricesCount, setPendingMatricesCount] = useState(0);
@@ -125,6 +126,31 @@ function App() {
       clearInterval(intervalId);
     };
   }, [user, isOnline]); // Re-run if user or online status changes
+
+  // Effect to handle user logout and clear pending matrices for the logged-out user
+  useEffect(() => {
+    if (!loading) {
+      if (user) {
+        // User logged in or is already logged in
+        prevUserIdRef.current = user.uid;
+      } else {
+        // User logged out
+        if (prevUserIdRef.current) {
+          console.log(`User ${prevUserIdRef.current} logged out. Clearing their pending matrices.`);
+          clearPendingCausalMatricesForUser(prevUserIdRef.current)
+            .then(() => {
+              toast.success('Matrices pendientes del usuario anterior limpiadas.');
+              prevUserIdRef.current = null; // Clear ref after cleanup
+              refreshPendingCount(); // Refresh count after cleanup
+            })
+            .catch(error => {
+              console.error('Error clearing pending matrices for previous user:', error);
+              toast.error('Error al limpiar matrices pendientes del usuario anterior.');
+            });
+        }
+      }
+    }
+  }, [loading, user, refreshPendingCount]); // Depend on loading, user, and refreshPendingCount
 
   useEffect(() => {
     if (!loading && user) {
