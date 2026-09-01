@@ -11,7 +11,7 @@ declare const self: ServiceWorkerGlobalScope;
 precacheAndRoute([
   ...self.__WB_MANIFEST,
   { url: '/offline.html', revision: null },
-  { url: '/', revision: null }, // Explicitly precache the root path (index.html)
+  { url: '/', revision: null }, // Explicitly precache the root path, which typically resolves to index.html
 ]);
 
 // Cache page navigations (HTML)
