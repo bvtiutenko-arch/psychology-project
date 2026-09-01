@@ -4,6 +4,7 @@ import { db } from '../../firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { RootWound, TriggerEvent, CognitiveBias, SomaticCompulsion, FeedbackLoop } from '../../types/causal';
 import toast from 'react-hot-toast';
+import { calculateMentalMetrics } from '../../lib/metrics';
 
 const CausalMatrixForm = () => {
   const { user } = useAuth();
@@ -23,13 +24,20 @@ const CausalMatrixForm = () => {
 
     setIsSubmitting(true);
     try {
-      const newMatrixData = {
-        userId: user.uid,
+      const causalInputs = {
         rootWound,
         triggerEvent,
         cognitiveBias,
         somaticCompulsion,
         feedbackLoop,
+      };
+
+      const mentalMetrics = calculateMentalMetrics(causalInputs);
+
+      const newMatrixData = {
+        userId: user.uid,
+        ...causalInputs,
+        ...mentalMetrics,
       };
 
       await addDoc(collection(db, 'causal_matrices'), {
