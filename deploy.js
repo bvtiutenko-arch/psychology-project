@@ -17,16 +17,36 @@ if (!credentialsPath) {
   process.exit(1);
 }
 
-if (!fs.existsSync(path.resolve(credentialsPath))) {
+const resolvedCredentialsPath = path.resolve(credentialsPath);
+
+if (!fs.existsSync(resolvedCredentialsPath)) {
   console.error(`Error: The file specified in GOOGLE_APPLICATION_CREDENTIALS does not exist: ${credentialsPath}`);
   console.error('Please ensure the path is correct and the file is accessible.');
+  process.exit(1);
+}
+
+// Validate that the provided credentials are a service account key
+try {
+  const fileContent = fs.readFileSync(resolvedCredentialsPath, 'utf8');
+  const credentials = JSON.parse(fileContent);
+  
+  if (credentials.type !== 'service_account') {
+    console.error(`Error: The credentials file at ${credentialsPath} is not a service account key.`);
+    console.error(`Expected 'type' field to be 'service_account', but got '${credentials.type}'.`);
+    console.error('Please provide a valid service account key JSON file for GOOGLE_APPLICATION_CREDENTIALS.');
+    process.exit(1);
+  }
+} catch (error) {
+  console.error(`Error: Failed to read or parse the credentials file at ${credentialsPath}.`);
+  console.error('Please ensure it is a valid JSON file.');
   process.exit(1);
 }
 
 console.log('FIREBASE_TOKEN removed. Using GOOGLE_APPLICATION_CREDENTIALS for authentication.');
 
 try {
-  execSync('firebase deploy --only hosting', { stdio: 'inherit' });
+  // Explicitly pass the modified environment to ensure FIREBASE_TOKEN is not present
+  execSync('firebase deploy --only hosting', { stdio: 'inherit', env: process.env });
 } catch (error) {
   console.error('\nDeployment failed.');
   console.error('Please ensure the service account has the necessary permissions for Firebase Hosting.');
