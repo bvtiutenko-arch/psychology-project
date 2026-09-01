@@ -76,6 +76,17 @@ export const calculateMentalMetrics = (inputs: CausalInputs): MentalMetrics => {
     }
   }
 
+  // Interaction Effects for more realistic scoring
+  // Example 1: Anxious attachment combined with a seen message without reply significantly increases couple friction.
+  if (inputs.rootWound === RootWound.AnxiousAttachment && inputs.triggerEvent === TriggerEvent.SeenMessageNoReply) {
+    coupleFriction += 15;
+  }
+
+  // Example 2: Hypervigilance combined with an unexpected notification spikes loop intensity.
+  if (inputs.rootWound === RootWound.TraumaticHypervigilance && inputs.triggerEvent === TriggerEvent.UnexpectedNotification) {
+    loopIntensity += 20;
+  }
+
   // Clamp values to 0-100 range
   return {
     clarityIndex: Math.max(0, Math.min(100, clarityIndex)),
