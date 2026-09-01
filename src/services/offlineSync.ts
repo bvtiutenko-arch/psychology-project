@@ -121,7 +121,7 @@ export async function syncPendingCausalMatrices(userId: string): Promise<void> {
       console.error(`Failed to sync pending matrix ${matrix.id}:`, error);
       // If an error occurs, keep it in IndexedDB for a future attempt
       toast.error(`Error al sincronizar matriz ${matrix.id.substring(0, 8)}... Se reintentará.`);
-      break; // Stop syncing if one fails, assume network issue persists
+      // Continue to try syncing other matrices even if one fails
     }
   }
 }

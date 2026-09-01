@@ -142,12 +142,14 @@ function App() {
     if (user && isOnline) {
       toast.loading('Intentando sincronizar matrices pendientes...');
       await syncPendingCausalMatrices(user.uid);
-      await refreshPendingCount();
+      const newPendingCount = await getPendingCausalMatricesCount(); // Get the updated count directly
+      setPendingMatricesCount(newPendingCount); // Update state
       toast.dismiss(); // Dismiss loading toast
-      if (pendingMatricesCount === 0) {
+
+      if (newPendingCount === 0) {
         toast.success('Todas las matrices pendientes han sido sincronizadas.');
       } else {
-        toast.error('No se pudieron sincronizar todas las matrices. Revisa tu conexión.');
+        toast.error(`Se sincronizaron algunas matrices. Quedan ${newPendingCount} pendientes.`);
       }
     } else if (!isOnline) {
       toast.error('Estás desconectado. Conéctate para sincronizar.');
