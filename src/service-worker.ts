@@ -7,7 +7,11 @@ import { CacheableResponsePlugin } from 'workbox-cacheable-response';
 declare const self: ServiceWorkerGlobalScope;
 
 // This will be replaced by the build process with a list of URLs to precache
-precacheAndRoute(self.__WB_MANIFEST);
+// Ensure offline.html is always precached
+precacheAndRoute([
+  ...self.__WB_MANIFEST,
+  { url: '/offline.html', revision: null },
+]);
 
 // Cache page navigations (HTML)
 registerRoute(
