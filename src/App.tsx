@@ -18,16 +18,25 @@ function App() {
       const params = new URLSearchParams(location.search);
       const action = params.get('action');
 
+      let targetPath = location.pathname; // Default to current path
+      let shouldNavigate = false;
+
       if (action === 'new_matrix') {
-        navigate('/new-matrix', { replace: true });
+        targetPath = '/new-matrix';
+        shouldNavigate = true;
       } else if (action === 'view_dashboard') {
-        navigate('/dashboard', { replace: true });
+        targetPath = '/dashboard';
+        shouldNavigate = true;
       }
-      // Clear the action parameter from the URL if it was handled
-      if (action) {
-        const newSearchParams = new URLSearchParams(params);
-        newSearchParams.delete('action');
-        navigate(location.pathname + (newSearchParams.toString() ? `?${newSearchParams.toString()}` : ''), { replace: true });
+
+      if (action) { // If an action parameter was present, we need to clear it from the URL
+        params.delete('action');
+        shouldNavigate = true; // Ensure navigation happens to clear the param
+      }
+
+      if (shouldNavigate) {
+        const newSearch = params.toString();
+        navigate(targetPath + (newSearch ? `?${newSearch}` : ''), { replace: true });
       }
 
       // Attempt to sync pending matrices when user is authenticated
