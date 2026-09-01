@@ -6,6 +6,7 @@ import {
   FeedbackLoop,
   MentalMetrics,
   CausalInputs,
+  InterventionStrategy,
 } from '../types/causal';
 
 // This is a simplified model. In a real-world scenario, these weights would be
@@ -43,6 +44,58 @@ const weights = {
     [FeedbackLoop.BrainFog]: { clarity: -30 },
   },
 };
+
+/**
+ * Recommends intervention strategies based on causal inputs and calculated mental metrics.
+ * This is a simplified rule-based system.
+ */
+const recommendInterventionStrategies = (inputs: CausalInputs, metrics: Omit<MentalMetrics, 'interventionStrategies'>): InterventionStrategy[] => {
+  const strategies: Set<InterventionStrategy> = new Set();
+
+  // General recommendations based on metric thresholds
+  if (metrics.loopIntensity > 60) {
+    strategies.add(InterventionStrategy.Mindfulness);
+    strategies.add(InterventionStrategy.CognitiveRestructuring);
+  }
+  if (metrics.coupleFriction > 50) {
+    strategies.add(InterventionStrategy.BoundarySetting);
+    strategies.add(InterventionStrategy.ProfessionalHelp); // Suggest professional help for high friction
+  }
+  if (metrics.clarityIndex < 40) {
+    strategies.add(InterventionStrategy.CognitiveRestructuring);
+    strategies.add(InterventionStrategy.Mindfulness);
+  }
+  if (metrics.sleepLatencyRisk > 50) {
+    strategies.add(InterventionStrategy.DigitalDetox);
+    strategies.add(InterventionStrategy.PhysicalActivity);
+    strategies.add(InterventionStrategy.Mindfulness);
+  }
+
+  // Specific recommendations based on causal inputs
+  if (inputs.rootWound === RootWound.AnxiousAttachment || inputs.rootWound === RootWound.InvalidationFear) {
+    strategies.add(InterventionStrategy.SelfCompassion);
+    strategies.add(InterventionStrategy.BoundarySetting);
+  }
+  if (inputs.cognitiveBias === CognitiveBias.Catastrophizing || inputs.cognitiveBias === CognitiveBias.MindReading) {
+    strategies.add(InterventionStrategy.CognitiveRestructuring);
+  }
+  if (inputs.somaticCompulsion === SomaticCompulsion.InfiniteScrolling || inputs.somaticCompulsion === SomaticCompulsion.LastSeenChecking) {
+    strategies.add(InterventionStrategy.DigitalDetox);
+  }
+  if (inputs.feedbackLoop === FeedbackLoop.Insomnia || inputs.feedbackLoop === FeedbackLoop.NightCortisol) {
+    strategies.add(InterventionStrategy.DigitalDetox);
+    strategies.add(InterventionStrategy.PhysicalActivity);
+  }
+
+  // Add a general recommendation if no specific high-risk factors are present but user is logging
+  if (strategies.size === 0) {
+    strategies.add(InterventionStrategy.Mindfulness);
+    strategies.add(InterventionStrategy.SelfCompassion);
+  }
+
+  return Array.from(strategies);
+};
+
 
 export const calculateMetrics = (inputs: CausalInputs): MentalMetrics => {
   let clarityIndex = 100;
@@ -96,10 +149,17 @@ export const calculateMetrics = (inputs: CausalInputs): MentalMetrics => {
   }
 
   // Clamp values to 0-100 range
-  return {
+  const clampedMetrics = {
     clarityIndex: Math.max(0, Math.min(100, clarityIndex)),
     loopIntensity: Math.max(0, Math.min(100, loopIntensity)),
     coupleFriction: Math.max(0, Math.min(100, coupleFriction)),
     sleepLatencyRisk: Math.max(0, Math.min(100, sleepLatencyRisk)),
+  };
+
+  const interventionStrategies = recommendInterventionStrategies(inputs, clampedMetrics);
+
+  return {
+    ...clampedMetrics,
+    interventionStrategies,
   };
 };

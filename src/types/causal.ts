@@ -77,5 +77,6 @@ export interface MentalMetrics {
   loopIntensity: number; // 0-100%
   coupleFriction: number; // 0-100%
   sleepLatencyRisk: number; // 0-100%
+  interventionStrategies: InterventionStrategy[];
 }
 

@@ -45,6 +45,19 @@ const ResultsView = ({ metrics, onReset }: { metrics: MentalMetrics; onReset: ()
       <MetricDisplay label="Fricción en Pareja" value={metrics.coupleFriction} colorClass={coupleFrictionColors} />
       <MetricDisplay label="Riesgo de Insomnio" value={metrics.sleepLatencyRisk} colorClass={sleepLatencyRiskColors} />
 
+      <div className="mt-8">
+        <h3 className="text-xl font-bold text-slate-800 mb-3 text-center">Estrategias de Intervención Recomendadas</h3>
+        {metrics.interventionStrategies.length > 0 ? (
+          <ul className="list-disc list-inside text-slate-600 space-y-2 px-4">
+            {metrics.interventionStrategies.map((strategy, index) => (
+              <li key={index} className="bg-blue-50 p-2 rounded-md shadow-sm">{strategy}</li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-slate-600 text-center">No se encontraron estrategias específicas, pero siempre puedes practicar mindfulness y autocompasión.</p>
+        )}
+      </div>
+
       <button 
         onClick={onReset}
         className="w-full mt-6 bg-slate-600 hover:bg-slate-700 text-white font-bold py-3 px-4 rounded-lg transition-colors"
@@ -132,14 +145,17 @@ const CausalMatrixForm = () => {
 
     setIsSubmitting(true);
     try {
-      const mentalMetrics = calculateMetrics(formData);
+      const { interventionStrategies, ...mentalMetricsWithoutStrategies } = calculateMetrics(formData);
 
       await addDoc(collection(db, 'causal_matrices'), {
         userId: user.uid,
         ...formData,
-        ...mentalMetrics,
+        ...mentalMetricsWithoutStrategies,
+        interventionStrategies, // Store strategies separately
         timestamp: serverTimestamp(),
       });
+
+      setLatestMetrics({ ...mentalMetricsWithoutStrategies, interventionStrategies });
 
       toast.success('Matriz Causal registrada con éxito.');
       setLatestMetrics(mentalMetrics);
