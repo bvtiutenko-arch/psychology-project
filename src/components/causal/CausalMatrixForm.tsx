@@ -158,7 +158,6 @@ const CausalMatrixForm = () => {
       setLatestMetrics({ ...mentalMetricsWithoutStrategies, interventionStrategies });
 
       toast.success('Matriz Causal registrada con éxito.');
-      setLatestMetrics(mentalMetrics);
       setShowSummary(false); // Hide summary after successful submission
     } catch (error) {
       console.error("Error adding document: ", error);
