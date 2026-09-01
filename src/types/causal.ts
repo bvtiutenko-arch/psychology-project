@@ -60,11 +60,3 @@ export interface MentalMetrics {
   sleepLatencyRisk: number; // 0-100%
 }
 
-// The specific inputs for the causal calculation
-export type CausalInputs = {
-  rootWound: RootWound;
-  triggerEvent: TriggerEvent;
-  cognitiveBias: CognitiveBias;
-  somaticCompulsion: SomaticCompulsion;
-  feedbackLoop: FeedbackLoop;
-};
