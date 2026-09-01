@@ -25,12 +25,19 @@ function App() {
         {user ? (
           <>
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/new-matrix" element={<CausalMatrixForm />} />
+            {/* Redirect root path to dashboard if authenticated */}
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
             {/* Redirect any other path to dashboard if authenticated */}
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </>
-        ) : (
-          /* Redirect any path to login if not authenticated */
-          <Route path="*" element={<Navigate to="/login" replace />} />
+        ) : ( // Not authenticated
+          <>
+            {/* Redirect root path to login if not authenticated */}
+            <Route path="/" element={<Navigate to="/login" replace />} />
+            {/* Redirect any other path to login if not authenticated */}
+            <Route path="*" element={<Navigate to="/login" replace />} />
+          </>
         )}
       </Routes>
     </div>
