@@ -35,6 +35,22 @@ function App() {
     }
   }, [loading, user, location.search, navigate, location.pathname]);
 
+  // Effect to handle online/offline synchronization
+  useEffect(() => {
+    const handleOnline = () => {
+      if (user) {
+        console.log('App is online, attempting to sync pending matrices...');
+        syncPendingCausalMatrices(user.uid);
+      }
+    };
+
+    window.addEventListener('online', handleOnline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+    };
+  }, [user]); // Re-run if user changes (e.g., logs in/out)
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen bg-gray-900">
