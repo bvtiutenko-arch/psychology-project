@@ -52,7 +52,8 @@ function App() {
     window.addEventListener('appinstalled', handleAppInstalled);
 
     return () => {
-      window.removeEventListener('beforeinstallPrompt', handleBeforeInstallPrompt);
+      // FIX: Corrected the event name to match the addEventListener string
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
       window.removeEventListener('appinstalled', handleAppInstalled);
     };
   }, []);
@@ -116,7 +117,7 @@ function App() {
       window.removeEventListener('offline', handleOnlineStatusChange);
       clearInterval(intervalId);
     };
-  }, [user, isOnline]);
+  }, [user, refreshPendingCount]); // FIX: Removed isOnline from dependency array as it's not needed
 
   useEffect(() => {
     if (!loading) {
