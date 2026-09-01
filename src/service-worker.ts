@@ -22,11 +22,11 @@ self.addEventListener('install', (event) => {
         console.log('PWA Service Worker: Caching offline page');
         return cache.add(OFFLINE_URL);
       })
-      .then(() => self.skipWaiting())
       .catch((error) => {
         console.error('PWA Service Worker: Offline page caching failed', error);
       })
   );
+  self.skipWaiting(); // Ensure the new service worker activates immediately after installation
 });
 
 // Navigation route: always try network first for navigation, then fall back to offline page
