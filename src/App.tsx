@@ -9,7 +9,7 @@ function App() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen bg-slate-900">
+      <div className="flex items-center justify-center h-screen bg-gray-900">
         <Spinner />
       </div>
     );
