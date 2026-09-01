@@ -72,10 +72,22 @@ registerRoute(
 // It's particularly useful for navigation requests that fail to fetch or find a cached response.
 setCatchHandler(async ({ request }) => {
   if (request.mode === 'navigate') {
-    return caches.match('/offline.html');
+    const offlinePage = await caches.match('/offline.html');
+    if (offlinePage) {
+      console.log('Serving offline.html for navigation request:', request.url);
+      return offlinePage;
+    }
+    // Fallback if offline.html is somehow not in cache (highly unlikely due to precaching)
+    console.error('Offline page not found in cache, serving generic network error for navigation:', request.url);
+    return new Response('Offline page not available', {
+      status: 503,
+      statusText: 'Service Unavailable',
+      headers: new Headers({ 'Content-Type': 'text/plain' })
+    });
   }
   // For other types of requests, return a generic network error response.
   // This provides a more consistent offline experience than letting the browser handle it.
+  console.warn('Network error for non-navigation request:', request.url);
   return new Response('Network error', {
     status: 503,
     statusText: 'Service Unavailable',
