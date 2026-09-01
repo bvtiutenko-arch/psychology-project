@@ -10,6 +10,7 @@
   "orientation": "portrait",
   "background_color": "#1a202c",
   "theme_color": "#1a202c",
+  "prefer_related_applications": false,
   "lang": "es-PE",
   "icons": [
     {
