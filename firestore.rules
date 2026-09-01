@@ -10,21 +10,21 @@ service cloud.firestore {
     match /mood_logs/{logId} {
       allow read, delete: if request.auth.uid == resource.data.userId;
       allow create: if request.auth.uid == request.resource.data.userId;
-      allow update: if request.auth.uid == resource.data.userId && request.resource.data.userId == request.auth.uid;
+      allow update: if request.auth.uid == resource.data.userId && request.resource.data.userId == resource.data.userId;
     }
     
     // Users can read and write their own SOS sessions, ensuring they own the record
     match /sos_sessions/{sessionId} {
       allow read, delete: if request.auth.uid == resource.data.userId;
       allow create: if request.auth.uid == request.resource.data.userId;
-      allow update: if request.auth.uid == resource.data.userId && request.resource.data.userId == request.auth.uid;
+      allow update: if request.auth.uid == resource.data.userId && request.resource.data.userId == resource.data.userId;
     }
     
     // Users can read and write their own causal matrices, ensuring they own the record
     match /causal_matrices/{matrixId} {
       allow read, delete: if request.auth.uid == resource.data.userId;
       allow create: if request.auth.uid == request.resource.data.userId;
-      allow update: if request.auth.uid == resource.data.userId && request.resource.data.userId == request.auth.uid;
+      allow update: if request.auth.uid == resource.data.userId && request.resource.data.userId == resource.data.userId;
     }
   }
 }
