@@ -1,3 +1,7 @@
+/**
+ * Defines the core types and enums for the Causal Matrix feature.
+ * These enums represent the various components of a user's mental pattern.
+ */
 
 // 1. Herida Raíz (Root Wound)
 export enum RootWound {
