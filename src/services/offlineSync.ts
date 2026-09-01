@@ -74,6 +74,11 @@ export async function clearPendingCausalMatrix(id: string): Promise<void> {
  * @param userId The ID of the current user.
  */
 export async function syncPendingCausalMatrices(userId: string): Promise<void> {
+  if (!navigator.onLine) {
+    console.log('Offline: Skipping sync of pending causal matrices.');
+    return;
+  }
+
   const pendingMatrices = await getPendingCausalMatrices();
 
   if (pendingMatrices.length === 0) {
