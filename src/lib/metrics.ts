@@ -4,7 +4,9 @@ import {
   CognitiveBias,
   SomaticCompulsion,
   FeedbackLoop,
+  FeedbackLoop,
   MentalMetrics,
+  CausalInputs, // Import CausalInputs from types/causal
 } from '../types/causal';
 
 // This is a simplified model. In a real-world scenario, these weights would be
@@ -41,14 +43,6 @@ const weights = {
     [FeedbackLoop.Insomnia]: { sleepLatencyRisk: 40, clarity: -15 },
     [FeedbackLoop.BrainFog]: { clarity: -30 },
   },
-};
-
-type CausalInputs = {
-  rootWound: RootWound;
-  triggerEvent: TriggerEvent;
-  cognitiveBias: CognitiveBias;
-  somaticCompulsion: SomaticCompulsion;
-  feedbackLoop: FeedbackLoop;
 };
 
 export const calculateMetrics = (inputs: CausalInputs): MentalMetrics => {

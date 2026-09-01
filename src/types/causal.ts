@@ -40,6 +40,14 @@ export enum FeedbackLoop {
   BrainFog = "Niebla mental",
 }
 
+export type CausalInputs = {
+  rootWound: RootWound;
+  triggerEvent: TriggerEvent;
+  cognitiveBias: CognitiveBias;
+  somaticCompulsion: SomaticCompulsion;
+  feedbackLoop: FeedbackLoop;
+};
+
 // The full causal matrix for a single event
 export interface CausalMatrix extends MentalMetrics {
   id: string;
