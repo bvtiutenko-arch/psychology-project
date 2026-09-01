@@ -103,7 +103,7 @@ function App() {
     // Add listener for messages from service worker
     const handleServiceWorkerMessage = async (event: MessageEvent) => {
       if (event.data && event.data.type === 'SYNC_PENDING_CAUSAL_MATRICES') {
-        console.log('Service Worker requested sync of pending causal matrices.');
+        console.log('App.tsx: Received SYNC_PENDING_CAUSAL_MATRICES message from Service Worker.');
         if (user) {
           toast.loading('Sincronizando matrices pendientes en segundo plano...');
           await syncPendingCausalMatrices(user.uid);
@@ -111,7 +111,7 @@ function App() {
           toast.dismiss();
           toast.success('Sincronización de matrices pendientes completada.');
         } else {
-          console.warn('Cannot sync pending matrices: User not authenticated.');
+          console.warn('App.tsx: Cannot sync pending matrices: User not authenticated.');
         }
       }
     };

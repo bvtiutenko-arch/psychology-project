@@ -98,12 +98,14 @@ self.addEventListener('sync', (event) => {
     console.log('Service Worker: Background sync event received for causal matrices.');
     // Notify all open clients that a background sync for causal matrices has occurred
     event.waitUntil(
-      self.clients.matchAll().then((clients) => {
+      (async () => { // Wrap in an async IIFE to use await
+        console.log(`Service Worker: Handling sync event for tag: ${event.tag}`);
+        const clients = await self.clients.matchAll();
         clients.forEach((client) => {
           console.log(`Service Worker: Notifying client ${client.id} about SYNC_PENDING_CAUSAL_MATRICES`);
           client.postMessage({ type: 'SYNC_PENDING_CAUSAL_MATRICES' });
         });
-      })
+      })()
     );
   }
 });
