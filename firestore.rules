@@ -3,7 +3,11 @@ service cloud.firestore {
   match /databases/{database}/documents {
     // Users can read, create, and update their own user document. Delete is disallowed for safety.
     match /users/{userId} {
-      allow read, create, update: if request.auth.uid == userId;
+      allow read, create: if request.auth.uid == userId;
+      // Allow update but prevent changing immutable fields like uid and createdAt
+      allow update: if request.auth.uid == userId
+                    && request.resource.data.uid == resource.data.uid
+                    && request.resource.data.createdAt == resource.data.createdAt;
     }
 
     // Users can read and write their own mood logs, ensuring they own the record
