@@ -63,6 +63,15 @@ export type CausalInputs = {
   feedbackLoop: FeedbackLoop;
 };
 
+// Type for a causal matrix submission that is pending synchronization
+export interface PendingCausalMatrix extends CausalInputs {
+  id: string; // Local unique ID for pending item
+  userId: string;
+  timestamp: Date; // Local timestamp when it was created
+  metrics: Omit<MentalMetrics, 'interventionStrategies'>; // Store calculated metrics
+  interventionStrategies: InterventionStrategy[]; // Store calculated strategies
+}
+
 // The full causal matrix for a single event
 export interface CausalMatrix extends MentalMetrics {
   id: string;
