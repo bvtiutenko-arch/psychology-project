@@ -55,8 +55,8 @@ registerRoute(
           console.error('PWA Service Worker: Offline page not found in cache. Serving generic offline fallback.');
           return new Response('<h1>Offline</h1><p>You are currently offline.</p>', {
             headers: { 'Content-Type': 'text/html' },
-            status: 503,
-            statusText: 'Service Unavailable',
+            status: 200, // Return 200 OK for a user-friendly offline page
+            statusText: 'OK',
           });
         },
       },
