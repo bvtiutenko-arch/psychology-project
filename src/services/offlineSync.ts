@@ -103,7 +103,7 @@ export async function syncPendingCausalMatrices(userId: string): Promise<void> {
     }
 
     try {
-      await addDoc(collection(db, 'causal_matrices'), {
+      const dataToStore: CausalMatrixData = {
         userId: matrix.userId,
         rootWound: matrix.rootWound,
         triggerEvent: matrix.triggerEvent,
@@ -113,7 +113,8 @@ export async function syncPendingCausalMatrices(userId: string): Promise<void> {
         ...matrix.metrics,
         interventionStrategies: matrix.interventionStrategies,
         timestamp: serverTimestamp(), // Use server timestamp for actual record
-      });
+      };
+      await addDoc(collection(db, 'causal_matrices'), dataToStore);
       await clearPendingCausalMatrix(matrix.id);
       toast.success(`Matriz Causal sincronizada: ${matrix.id.substring(0, 8)}...`);
       console.log(`Successfully synced pending matrix: ${matrix.id}`);

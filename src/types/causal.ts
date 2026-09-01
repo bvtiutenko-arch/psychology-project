@@ -72,7 +72,14 @@ export interface PendingCausalMatrix extends CausalInputs {
   interventionStrategies: InterventionStrategy[]; // Store calculated strategies
 }
 
-// The full causal matrix for a single event
+// New type for data sent to Firestore
+export type CausalMatrixData = CausalInputs & Omit<MentalMetrics, 'interventionStrategies'> & {
+  userId: string;
+  interventionStrategies: InterventionStrategy[];
+  timestamp: any; // Use 'any' or 'FieldValue' from firebase/firestore for serverTimestamp()
+};
+
+// The full causal matrix for a single event (as read from Firestore)
 export interface CausalMatrix extends MentalMetrics {
   id: string;
   timestamp: Date;

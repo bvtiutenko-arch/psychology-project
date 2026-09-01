@@ -148,13 +148,14 @@ const CausalMatrixForm = () => {
     const { interventionStrategies, ...mentalMetricsWithoutStrategies } = calculateMetrics(formData);
 
     try {
-      await addDoc(collection(db, 'causal_matrices'), {
+      const dataToStore: CausalMatrixData = {
         userId: user.uid,
         ...formData,
         ...mentalMetricsWithoutStrategies,
         interventionStrategies, // Store strategies separately
         timestamp: serverTimestamp(),
-      });
+      };
+      await addDoc(collection(db, 'causal_matrices'), dataToStore);
 
       setLatestMetrics({ ...mentalMetricsWithoutStrategies, interventionStrategies });
       toast.success('Matriz Causal registrada con éxito.');
