@@ -87,7 +87,14 @@ export async function syncPendingCausalMatrices(userId: string): Promise<void> {
     return;
   }
 
-  const pendingMatrices = await getPendingCausalMatrices();
+  let pendingMatrices: PendingCausalMatrix[] = [];
+  try {
+    pendingMatrices = await getPendingCausalMatrices();
+  } catch (error) {
+    console.error('Error fetching pending causal matrices from IndexedDB:', error);
+    toast.error('Error al cargar matrices pendientes para sincronizar.');
+    return;
+  }
 
   if (pendingMatrices.length === 0) {
     console.log('No pending causal matrices to sync.');
@@ -95,10 +102,13 @@ export async function syncPendingCausalMatrices(userId: string): Promise<void> {
   }
 
   console.log(`Attempting to sync ${pendingMatrices.length} pending causal matrices...`);
+  let syncedCount = 0;
+  let failedCount = 0;
+  const failedMatrixIds: string[] = [];
 
   for (const matrix of pendingMatrices) {
     if (matrix.userId !== userId) {
-      console.warn(`Skipping pending matrix for different user: ${matrix.userId}`);
+      console.warn(`Skipping pending matrix for different user: ${matrix.userId} (current user: ${userId})`);
       continue;
     }
 
@@ -116,13 +126,23 @@ export async function syncPendingCausalMatrices(userId: string): Promise<void> {
       };
       await addDoc(collection(db, 'causal_matrices'), dataToStore);
       await clearPendingCausalMatrix(matrix.id);
-      toast.success(`Matriz Causal sincronizada: ${matrix.id.substring(0, 8)}...`);
+      syncedCount++;
       console.log(`Successfully synced pending matrix: ${matrix.id}`);
     } catch (error) {
       console.error(`Failed to sync pending matrix ${matrix.id}:`, error);
-      // If an error occurs, keep it in IndexedDB for a future attempt
-      toast.error(`Error al sincronizar matriz ${matrix.id.substring(0, 8)}... Se reintentará.`);
-      // Continue to try syncing other matrices even if one fails
+      failedCount++;
+      failedMatrixIds.push(matrix.id.substring(0, 8));
+      // Keep it in IndexedDB for a future attempt
+    }
+  }
+
+  if (syncedCount > 0 || failedCount > 0) {
+    if (syncedCount === pendingMatrices.length) {
+      toast.success(`¡Todas las ${syncedCount} matrices pendientes sincronizadas!`);
+    } else if (syncedCount > 0) {
+      toast.success(`Se sincronizaron ${syncedCount} matrices. ${failedCount} fallaron: ${failedMatrixIds.join(', ')}.`);
+    } else {
+      toast.error(`Fallo la sincronización de ${failedCount} matrices: ${failedMatrixIds.join(', ')}.`);
     }
   }
 }
