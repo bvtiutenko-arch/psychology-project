@@ -3,11 +3,33 @@ import Login from './components/auth/Login';
 import Dashboard from './components/core/Dashboard';
 import Spinner from './components/ui/Spinner';
 import { Toaster } from 'react-hot-toast';
-import { Routes, Route, Navigate } from 'react-router-dom'; // Import routing components
+import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom'; // Import routing components
 import CausalMatrixForm from './components/causal/CausalMatrixForm'; // Import CausalMatrixForm
+import { useEffect } from 'react'; // Import useEffect
 
 function App() {
   const { user, loading } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!loading && user) {
+      const params = new URLSearchParams(location.search);
+      const action = params.get('action');
+
+      if (action === 'new_matrix') {
+        navigate('/new-matrix', { replace: true });
+      } else if (action === 'view_dashboard') {
+        navigate('/dashboard', { replace: true });
+      }
+      // Clear the action parameter from the URL if it was handled
+      if (action) {
+        const newSearchParams = new URLSearchParams(params);
+        newSearchParams.delete('action');
+        navigate(location.pathname + (newSearchParams.toString() ? `?${newSearchParams.toString()}` : ''), { replace: true });
+      }
+    }
+  }, [loading, user, location.search, navigate, location.pathname]);
 
   if (loading) {
     return (
@@ -26,9 +48,9 @@ function App() {
           <>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/new-matrix" element={<CausalMatrixForm />} />
-            {/* Redirect root path to dashboard if authenticated */}
+            {/* Redirect root path to dashboard if authenticated and no specific action */}
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
-            {/* Redirect any other path to dashboard if authenticated */}
+            {/* Redirect any other path to dashboard if authenticated and no specific action */}
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </>
         ) : ( // Not authenticated
