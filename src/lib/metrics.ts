@@ -87,6 +87,21 @@ export const calculateMentalMetrics = (inputs: CausalInputs): MentalMetrics => {
     loopIntensity += 20;
   }
 
+  // Example 3: Catastrophizing during the night significantly impacts sleep.
+  if (inputs.cognitiveBias === CognitiveBias.Catastrophizing && inputs.feedbackLoop === FeedbackLoop.NightCortisol) {
+    sleepLatencyRisk += 25;
+  }
+
+  // Example 4: Emotional reasoning leading to impulsive messaging creates high friction.
+  if (inputs.cognitiveBias === CognitiveBias.EmotionalReasoning && inputs.somaticCompulsion === SomaticCompulsion.ImpulsiveMessaging) {
+    coupleFriction += 20;
+  }
+
+  // Example 5: Fear of invalidation combined with a cold tone crushes mental clarity.
+  if (inputs.rootWound === RootWound.InvalidationFear && inputs.triggerEvent === TriggerEvent.ColdTone) {
+    clarityIndex -= 20;
+  }
+
   // Clamp values to 0-100 range
   return {
     clarityIndex: Math.max(0, Math.min(100, clarityIndex)),
