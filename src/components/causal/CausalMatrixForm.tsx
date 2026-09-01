@@ -4,10 +4,10 @@ import { db } from '../../firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { CausalInputs, RootWound, TriggerEvent, CognitiveBias, SomaticCompulsion, FeedbackLoop, MentalMetrics } from '../../types/causal';
 import toast from 'react-hot-toast';
-import { calculateMetrics } from '../../services/patternEngine';
+import { calculateCausalMatrixMetrics } from '../../services/causalEngine';
 import { getMetricColorClass } from '../../lib/metrics';
 import SelectField from '../ui/SelectField';
-import { savePendingCausalMatrix, syncPendingCausalMatrices } from '../../services/offlineSync'; // New import
+import { savePendingCausalMatrix, syncPendingCausalMatrices } from '../../services/offlineSync';
 
 // Initial state for the form data
 const initialFormData: CausalInputs = {
@@ -145,7 +145,7 @@ const CausalMatrixForm = () => {
     }
 
     setIsSubmitting(true);
-    const { interventionStrategies, ...mentalMetricsWithoutStrategies } = calculateMetrics(formData);
+    const { metrics: mentalMetricsWithoutStrategies, strategies: interventionStrategies } = calculateCausalMatrixMetrics(formData);
 
     try {
       const dataToStore: CausalMatrixData = {

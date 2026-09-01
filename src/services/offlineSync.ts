@@ -1,9 +1,9 @@
 import { openDB, IDBPDatabase } from 'idb';
-import { CausalInputs, PendingCausalMatrix, CausalMatrixData } from '../types/causal'; // Import CausalMatrixData
+import { CausalInputs, PendingCausalMatrix, CausalMatrixData } from '../types/causal';
 import { db } from '../firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import toast from 'react-hot-toast';
-import { calculateMetrics } from './patternEngine';
+import { calculateCausalMatrixMetrics } from './causalEngine';
 
 const DB_NAME = 'menteEnCalmaDB';
 const STORE_NAME = 'pendingCausalMatrices';
@@ -35,7 +35,7 @@ export async function savePendingCausalMatrix(inputs: CausalInputs, userId: stri
   const id = crypto.randomUUID(); // Generate a unique ID for the pending item
   const timestamp = new Date();
 
-  const { interventionStrategies, ...mentalMetricsWithoutStrategies } = calculateMetrics(inputs);
+  const { metrics: mentalMetricsWithoutStrategies, strategies: interventionStrategies } = calculateCausalMatrixMetrics(inputs);
 
   const pendingMatrix: PendingCausalMatrix = {
     id,
