@@ -51,7 +51,7 @@ type CausalInputs = {
   feedbackLoop: FeedbackLoop;
 };
 
-export const calculateMentalMetrics = (inputs: CausalInputs): MentalMetrics => {
+export const calculateMetrics = (inputs: CausalInputs): MentalMetrics => {
   let clarityIndex = 100;
   let loopIntensity = 0;
   let coupleFriction = 0;
