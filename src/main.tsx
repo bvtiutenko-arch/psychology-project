@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
 import { registerSW } from 'virtual:pwa-register';
+import toast from 'react-hot-toast'; // Import toast
 
 // Register the service worker
 const updateSW = registerSW({
@@ -13,7 +14,7 @@ const updateSW = registerSW({
     }
   },
   onOfflineReady() {
-    console.log('La aplicación está lista para funcionar sin conexión.');
+    toast.success('¡La aplicación está lista para funcionar sin conexión!'); // Show a toast notification
   },
 });
 
