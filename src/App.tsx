@@ -6,6 +6,7 @@ import { Toaster } from 'react-hot-toast';
 import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom'; // Import routing components
 import CausalMatrixForm from './components/causal/CausalMatrixForm'; // Import CausalMatrixForm
 import { useEffect } from 'react'; // Import useEffect
+import { syncPendingCausalMatrices } from './services/offlineSync'; // New import
 
 function App() {
   const { user, loading } = useAuth();
@@ -28,6 +29,9 @@ function App() {
         newSearchParams.delete('action');
         navigate(location.pathname + (newSearchParams.toString() ? `?${newSearchParams.toString()}` : ''), { replace: true });
       }
+
+      // Attempt to sync pending matrices when user is authenticated
+      syncPendingCausalMatrices(user.uid);
     }
   }, [loading, user, location.search, navigate, location.pathname]);
 

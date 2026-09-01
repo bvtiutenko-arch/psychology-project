@@ -7,6 +7,7 @@ import toast from 'react-hot-toast';
 import { calculateMetrics } from '../../services/patternEngine';
 import { getMetricColorClass } from '../../lib/metrics';
 import SelectField from '../ui/SelectField';
+import { savePendingCausalMatrix, syncPendingCausalMatrices } from '../../services/offlineSync'; // New import
 
 // Initial state for the form data
 const initialFormData: CausalInputs = {
@@ -144,9 +145,9 @@ const CausalMatrixForm = () => {
     }
 
     setIsSubmitting(true);
-    try {
-      const { interventionStrategies, ...mentalMetricsWithoutStrategies } = calculateMetrics(formData);
+    const { interventionStrategies, ...mentalMetricsWithoutStrategies } = calculateMetrics(formData);
 
+    try {
       await addDoc(collection(db, 'causal_matrices'), {
         userId: user.uid,
         ...formData,
@@ -156,12 +157,18 @@ const CausalMatrixForm = () => {
       });
 
       setLatestMetrics({ ...mentalMetricsWithoutStrategies, interventionStrategies });
-
       toast.success('Matriz Causal registrada con éxito.');
       setShowSummary(false); // Hide summary after successful submission
     } catch (error) {
-      console.error("Error adding document: ", error);
-      toast.error('Hubo un error al registrar tu matriz.');
+      console.error("Error adding document to Firestore, attempting offline save: ", error);
+      // If Firestore fails, save to IndexedDB
+      await savePendingCausalMatrix(formData, user.uid);
+      setLatestMetrics({ ...mentalMetricsWithoutStrategies, interventionStrategies }); // Still show metrics
+      toast.success('Matriz Causal guardada localmente. Se sincronizará cuando haya conexión.');
+      setShowSummary(false); // Hide summary
+
+      // Attempt to sync immediately in case connection was restored quickly
+      await syncPendingCausalMatrices(user.uid);
     } finally {
       setIsSubmitting(false);
     }
