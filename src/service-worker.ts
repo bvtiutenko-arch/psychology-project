@@ -1,5 +1,7 @@
 /// <reference lib="webworker" />
 import { precacheAndRoute } from 'workbox-precaching';
+import { registerRoute, NavigationRoute } from 'workbox-routing';
+import { NetworkFirst, CacheFirst, StaleWhileRevalidate } from 'workbox-strategies';
 
 declare const self: ServiceWorkerGlobalScope & {
   __WB_MANIFEST: (string | { url: string; revision: string | null })[];
@@ -26,13 +28,47 @@ self.addEventListener('install', (event) => {
   );
 });
 
+// Navigation route: always try network first for navigation, then fall back to offline page
+registerRoute(
+  new NavigationRoute(
+    new NetworkFirst({
+      cacheName: 'navigations',
+      plugins: [
+        {
+          handlerDidError: async () => caches.match(OFFLINE_URL),
+        },
+      ],
+    })
+  )
+);
+
+// Cache images with a Cache First strategy
+registerRoute(
+  ({ request }) => request.destination === 'image',
+  new CacheFirst({
+    cacheName: 'images',
+  })
+);
+
+// Cache CSS, JS, and Web Worker requests with a Stale While Revalidate strategy
+registerRoute(
+  ({ request }) =>
+    request.destination === 'script' ||
+    request.destination === 'style' ||
+    request.destination === 'worker',
+  new StaleWhileRevalidate({
+    cacheName: 'static-resources',
+  })
+);
+
 self.addEventListener('activate', (event) => {
   console.log('Service Worker: Activating...');
   event.waitUntil(
     caches.keys().then((cacheNames) => {
+      const expectedCacheNames = [CACHE_NAME, 'navigations', 'images', 'static-resources'];
       return Promise.all(
         cacheNames.map((cacheName) => {
-          if (cacheName !== CACHE_NAME) {
+          if (!expectedCacheNames.includes(cacheName)) {
             console.log('Service Worker: Deleting old cache', cacheName);
             return caches.delete(cacheName);
           }
@@ -43,57 +79,3 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-self.addEventListener('fetch', (event) => {
-  // Only handle GET requests
-  if (event.request.method !== 'GET') {
-    return;
-  }
-
-  event.respondWith(
-    caches.match(event.request).then((response) => {
-      // Cache hit - return response
-      if (response) {
-        console.log('Service Worker: Serving from cache:', event.request.url);
-        return response;
-      }
-
-      // No cache hit - fetch from network
-      console.log('Service Worker: Fetching from network:', event.request.url);
-      return fetch(event.request).then((networkResponse) => {
-        // Check if we received a valid response
-        if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
-          return networkResponse;
-        }
-
-        // IMPORTANT: Clone the response. A response is a stream
-        // and can only be consumed once. Since we are consuming this
-        // once by the browser and once by the cache, we need to clone it.
-        const responseToCache = networkResponse.clone();
-
-        caches.open(CACHE_NAME).then((cache) => {
-          cache.put(event.request, responseToCache);
-        });
-
-        return networkResponse;
-      }).catch(() => {
-        // If both network and cache fail, serve the offline page
-        console.log('Service Worker: Network request failed, attempting to serve offline page.');
-        return caches.match(OFFLINE_URL).then(cachedResponse => {
-          if (cachedResponse) {
-            console.log('Service Worker: Serving offline page from cache.');
-            return cachedResponse;
-          }
-          console.error('Service Worker: Offline page not found in cache. Serving generic fallback.');
-          // Fallback to a generic offline response if OFFLINE_URL itself is missing from cache
-          return new Response('<h1>Offline</h1><p>You are currently offline and the offline page could not be retrieved.</p>', {
-            status: 503,
-            statusText: 'Service Unavailable',
-            headers: new Headers({
-              'Content-Type': 'text/html; charset=utf-8'
-            })
-          });
-        });
-      });
-    })
-  );
-});
