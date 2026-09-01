@@ -5,7 +5,7 @@ import './index.css';
 
 // Function to register the service worker
 const registerServiceWorker = () => {
-  if ('serviceWorker' in navigator) {
+  if (process.env.NODE_ENV === 'production' && 'serviceWorker' in navigator) {
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('/service-worker.js')
         .then(registration => {
