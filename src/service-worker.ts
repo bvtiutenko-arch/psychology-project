@@ -69,6 +69,23 @@ registerRoute(
   })
 );
 
+// Cache other API calls (e.g., to backend functions or other REST APIs)
+registerRoute(
+  ({ url }) => url.pathname.startsWith('/api/'), // Assuming API calls start with /api/
+  new NetworkFirst({
+    cacheName: 'api-data',
+    plugins: [
+      new CacheableResponsePlugin({
+        statuses: [0, 200], // Cache opaque responses and successful ones
+      }),
+      new ExpirationPlugin({
+        maxEntries: 20, // Keep a maximum of 20 API responses
+        maxAgeSeconds: 5 * 60, // Cache API responses for 5 minutes
+      }),
+    ],
+  })
+);
+
 // This will be the global catch handler for any failed requests.
 // It's particularly useful for navigation requests that fail to fetch or find a cached response.
 setCatchHandler(async ({ request }) => {
