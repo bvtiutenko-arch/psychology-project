@@ -19,5 +19,12 @@ service cloud.firestore {
       allow create: if request.auth.uid == request.resource.data.userId;
       allow update: if request.auth.uid == resource.data.userId && request.resource.data.userId == request.auth.uid;
     }
+    
+    // Users can read and write their own causal matrices, ensuring they own the record
+    match /causal_matrices/{matrixId} {
+      allow read, delete: if request.auth.uid == resource.data.userId;
+      allow create: if request.auth.uid == request.resource.data.userId;
+      allow update: if request.auth.uid == resource.data.userId && request.resource.data.userId == request.auth.uid;
+    }
   }
 }
