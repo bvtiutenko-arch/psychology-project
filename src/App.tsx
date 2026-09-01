@@ -5,16 +5,19 @@ import Spinner from './components/ui/Spinner';
 import { Toaster } from 'react-hot-toast';
 import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom'; // Import routing components
 import CausalMatrixForm from './components/causal/CausalMatrixForm'; // Import CausalMatrixForm
-import { useEffect, useState } from 'react'; // Import useEffect and useState
-import { syncPendingCausalMatrices, getPendingCausalMatricesCount } from './services/offlineSync'; // New import
+import { useEffect, useState } from 'react';
+import { syncPendingCausalMatrices, getPendingCausalMatricesCount } from './services/offlineSync';
+import toast from 'react-hot-toast'; // Explicitly import toast
 
 function App() {
   const { user, loading } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
 
-  const [isOnline, setIsOnline] = useState(navigator.onLine); // Track online status
-  const [pendingMatricesCount, setPendingMatricesCount] = useState(0); // New state for pending count
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [pendingMatricesCount, setPendingMatricesCount] = useState(0);
+  const [deferredPrompt, setDeferredPrompt] = useState<Event | null>(null); // State for A2HS prompt
+  const [isAppInstalled, setIsAppInstalled] = useState(false); // State to track if app is installed
 
   // Function to refresh the pending matrices count
   const refreshPendingCount = async () => {
@@ -26,17 +29,63 @@ function App() {
     }
   };
 
+  // Effect for PWA installation prompt
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      console.log('beforeinstallprompt fired');
+    };
+
+    const handleAppInstalled = () => {
+      setIsAppInstalled(true);
+      setDeferredPrompt(null); // Clear the prompt once installed
+      console.log('PWA installed successfully!');
+    };
+
+    // Check if already installed on load
+    if (window.matchMedia('(display-mode: standalone)').matches || (navigator as any).standalone) {
+      setIsAppInstalled(true);
+    }
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.addEventListener('appinstalled', handleAppInstalled);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('appinstalled', handleAppInstalled);
+    };
+  }, []); // Empty dependency array means this runs once on mount
+
+  const handleInstallClick = async () => {
+    if (deferredPrompt) {
+      // Show the install prompt
+      (deferredPrompt as any).prompt();
+      // Wait for the user to respond to the prompt
+      const { outcome } = await (deferredPrompt as any).userChoice;
+      console.log(`User response to the install prompt: ${outcome}`);
+      // We've used the prompt, and can't use it again, so clear it.
+      setDeferredPrompt(null);
+      if (outcome === 'accepted') {
+        toast.success('¡Aplicación instalada con éxito!');
+        setIsAppInstalled(true); // Update state immediately
+      } else {
+        toast.error('Instalación cancelada.');
+      }
+    }
+  };
+
   // Effect to handle online/offline status and synchronization
   useEffect(() => {
-    const handleOnlineStatusChange = async () => { // Made async to await refreshPendingCount
+    const handleOnlineStatusChange = async () => {
       const currentOnlineStatus = navigator.onLine;
       setIsOnline(currentOnlineStatus);
       if (currentOnlineStatus && user) {
         console.log('App is online, attempting to sync pending matrices...');
-        await syncPendingCausalMatrices(user.uid); // Await sync to ensure count is updated after
-        await refreshPendingCount(); // Refresh count after sync attempt
+        await syncPendingCausalMatrices(user.uid);
+        await refreshPendingCount();
       } else {
-        await refreshPendingCount(); // Refresh count even if offline, to show current pending
+        await refreshPendingCount();
       }
     };
 
@@ -130,6 +179,18 @@ function App() {
             {pendingMatricesCount} Pendiente{pendingMatricesCount > 1 ? 's' : ''}
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-3 h-3 ml-1">
               <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.181m0-4.991-3.181-3.181m0 8.25 3.181 3.181m0-4.991-3.181-3.181A9.347 9.347 0 0 0 5.942 3.563H5.4M7.487 3.51H18.5a2.25 2.25 0 0 1 2.25 2.25v10.5a2.25 2.25 0 0 1-2.25 2.25H7.488m-4.5-8.25h11.25" />
+            </svg>
+          </button>
+        )}
+        {deferredPrompt && !isAppInstalled && (
+          <button
+            onClick={handleInstallClick}
+            className="ml-2 px-2 py-0.5 rounded-full bg-blue-600 text-white text-xs font-bold flex items-center"
+            title="Instalar aplicación"
+          >
+            Instalar
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-3 h-3 ml-1">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
             </svg>
           </button>
         )}
