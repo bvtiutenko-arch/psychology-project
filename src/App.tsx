@@ -15,8 +15,6 @@ function App() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  console.log('MenteEnCalma App is running!');
-
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [pendingMatricesCount, setPendingMatricesCount] = useState(0);
   const [deferredPrompt, setDeferredPrompt] = useState<Event | null>(null); // State for A2HS prompt
