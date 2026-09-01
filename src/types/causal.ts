@@ -40,6 +40,17 @@ export enum FeedbackLoop {
   BrainFog = "Niebla mental",
 }
 
+// 6. Estrategia de Intervención (Intervention Strategy)
+export enum InterventionStrategy {
+  Mindfulness = "Mindfulness y Respiración",
+  CognitiveRestructuring = "Reestructuración Cognitiva",
+  BoundarySetting = "Establecimiento de Límites",
+  SelfCompassion = "Autocompasión",
+  DigitalDetox = "Desintoxicación Digital",
+  ProfessionalHelp = "Buscar Ayuda Profesional",
+  PhysicalActivity = "Actividad Física",
+}
+
 export type CausalInputs = {
   rootWound: RootWound;
   triggerEvent: TriggerEvent;
