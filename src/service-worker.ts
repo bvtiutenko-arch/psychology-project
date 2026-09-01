@@ -16,7 +16,7 @@ registerRoute(
     cacheName: 'pages',
     plugins: [
       new CacheableResponsePlugin({
-        statuses: [200],
+        statuses: [0, 200], // Cache opaque responses and successful ones
       }),
     ],
   })
