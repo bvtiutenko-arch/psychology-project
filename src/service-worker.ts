@@ -80,6 +80,9 @@ setCatchHandler(async ({ request }) => {
 // Handle message from client to skip waiting and activate new service worker
 self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
+    // This allows the new service worker to take control of the page immediately
+    // after it has finished installing, without waiting for the user to close
+    // all tabs or refresh the page.
     self.skipWaiting();
   }
 });
