@@ -20,15 +20,15 @@ export const getMetricColorClass = (value: number, reverseColors: boolean = fals
   let textColor: string;
   let bgColor: string;
 
-  // Define thresholds for colors
-  const highThreshold = 70; // e.g., >70 is good
-  const mediumThreshold = 40; // e.g., 40-70 is moderate
+  // Define thresholds for colors as constants for better readability and maintainability
+  const HIGH_THRESHOLD = 70; // e.g., >70 is good
+  const MEDIUM_THRESHOLD = 40; // e.g., 40-70 is moderate
 
   if (reverseColors) { // For metrics where lower is better (e.g., loopIntensity, coupleFriction, sleepLatencyRisk)
-    if (value <= mediumThreshold) { // Low value is good
+    if (value <= MEDIUM_THRESHOLD) { // Low value is good
       textColor = 'text-green-500';
       bgColor = 'bg-green-500';
-    } else if (value <= highThreshold) { // Medium value is moderate
+    } else if (value <= HIGH_THRESHOLD) { // Medium value is moderate
       textColor = 'text-yellow-500';
       bgColor = 'bg-yellow-500';
     } else { // High value is bad
@@ -36,10 +36,10 @@ export const getMetricColorClass = (value: number, reverseColors: boolean = fals
       bgColor = 'bg-red-500';
     }
   } else { // For metrics where higher is better (e.g., clarityIndex)
-    if (value >= highThreshold) { // High value is good
+    if (value >= HIGH_THRESHOLD) { // High value is good
       textColor = 'text-green-500';
       bgColor = 'bg-green-500';
-    } else if (value >= mediumThreshold) { // Medium value is moderate
+    } else if (value >= MEDIUM_THRESHOLD) { // Medium value is moderate
       textColor = 'text-yellow-500';
       bgColor = 'bg-yellow-500';
     } else { // Low value is bad
