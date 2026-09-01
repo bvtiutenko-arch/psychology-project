@@ -54,7 +54,8 @@ registerRoute(
   ({ request }) =>
     request.destination === 'script' ||
     request.destination === 'style' ||
-    request.destination === 'worker',
+    request.destination === 'worker' ||
+    request.destination === 'font',
   new StaleWhileRevalidate({
     cacheName: 'static-resources',
   })
