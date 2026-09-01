@@ -5,13 +5,35 @@ import Spinner from './components/ui/Spinner';
 import { Toaster } from 'react-hot-toast';
 import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom'; // Import routing components
 import CausalMatrixForm from './components/causal/CausalMatrixForm'; // Import CausalMatrixForm
-import { useEffect } from 'react'; // Import useEffect
+import { useEffect, useState } from 'react'; // Import useEffect and useState
 import { syncPendingCausalMatrices } from './services/offlineSync'; // New import
 
 function App() {
   const { user, loading } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+
+  const [isOnline, setIsOnline] = useState(navigator.onLine); // Track online status
+
+  // Effect to handle online/offline status and synchronization
+  useEffect(() => {
+    const handleOnlineStatusChange = () => {
+      const currentOnlineStatus = navigator.onLine;
+      setIsOnline(currentOnlineStatus);
+      if (currentOnlineStatus && user) {
+        console.log('App is online, attempting to sync pending matrices...');
+        syncPendingCausalMatrices(user.uid);
+      }
+    };
+
+    window.addEventListener('online', handleOnlineStatusChange);
+    window.addEventListener('offline', handleOnlineStatusChange);
+
+    return () => {
+      window.removeEventListener('online', handleOnlineStatusChange);
+      window.removeEventListener('offline', handleOnlineStatusChange);
+    };
+  }, [user]); // Re-run if user changes (e.g., logs in/out)
 
   useEffect(() => {
     if (!loading && user) {
@@ -39,26 +61,13 @@ function App() {
         navigate(targetPath + (newSearch ? `?${newSearch}` : ''), { replace: true });
       }
 
-      // Attempt to sync pending matrices when user is authenticated
-      syncPendingCausalMatrices(user.uid);
-    }
-  }, [loading, user, location.search, navigate, location.pathname]);
-
-  // Effect to handle online/offline synchronization
-  useEffect(() => {
-    const handleOnline = () => {
-      if (user) {
-        console.log('App is online, attempting to sync pending matrices...');
+      // Attempt to sync pending matrices when user is authenticated on initial load/login
+      // This is in addition to the online event listener
+      if (isOnline) { // Only attempt sync if currently online
         syncPendingCausalMatrices(user.uid);
       }
-    };
-
-    window.addEventListener('online', handleOnline);
-
-    return () => {
-      window.removeEventListener('online', handleOnline);
-    };
-  }, [user]); // Re-run if user changes (e.g., logs in/out)
+    }
+  }, [loading, user, location.search, navigate, location.pathname, isOnline]);
 
   if (loading) {
     return (
@@ -71,6 +80,10 @@ function App() {
   return (
     <div className="min-h-screen bg-gray-50 text-gray-800 font-sans">
       <Toaster position="top-center" reverseOrder={false} />
+      <div className={`fixed top-0 left-0 right-0 p-1 text-center text-xs font-medium z-50
+                  ${isOnline ? 'bg-green-500 text-white' : 'bg-red-500 text-white'}`}>
+        {isOnline ? 'Online' : 'Offline'}
+      </div>
       <Routes>
         <Route path="/login" element={<Login />} />
         {user ? (
