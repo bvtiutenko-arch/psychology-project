@@ -5,37 +5,45 @@ import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { RootWound, TriggerEvent, CognitiveBias, SomaticCompulsion, FeedbackLoop, MentalMetrics } from '../../types/causal';
 import toast from 'react-hot-toast';
 import { calculateMetrics } from '../../services/patternEngine';
+import { getMetricColorClass } from '../../lib/metrics'; // Import the new utility
 
-const MetricDisplay = ({ label, value, colorClass }: { label: string; value: number; colorClass: string }) => (
+const MetricDisplay = ({ label, value, colorClass }: { label: string; value: number; colorClass: { text: string; bg: string } }) => (
   <div className="mb-4">
     <div className="flex justify-between mb-1">
       <span className="text-base font-medium text-slate-700">{label}</span>
-      <span className={`text-sm font-medium ${colorClass}`}>{value}%</span>
+      <span className={`text-sm font-medium ${colorClass.text}`}>{value}%</span>
     </div>
     <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
-      <div className={`${colorClass} h-2.5 rounded-full`} style={{ width: `${value}%` }}></div>
+      <div className={`${colorClass.bg} h-2.5 rounded-full`} style={{ width: `${value}%` }}></div>
     </div>
   </div>
 );
 
-const ResultsView = ({ metrics, onReset }: { metrics: MentalMetrics; onReset: () => void }) => (
-  <div>
-    <h2 className="text-2xl font-bold text-slate-800 mb-2 text-center">Análisis de tu Matriz</h2>
-    <p className="text-slate-600 mb-6 text-center">Este es el impacto de tu patrón actual.</p>
-    
-    <MetricDisplay label="Índice de Claridad" value={metrics.clarityIndex} colorClass="bg-blue-500" />
-    <MetricDisplay label="Intensidad del Bucle" value={metrics.loopIntensity} colorClass="bg-yellow-500" />
-    <MetricDisplay label="Fricción en Pareja" value={metrics.coupleFriction} colorClass="bg-orange-500" />
-    <MetricDisplay label="Riesgo de Insomnio" value={metrics.sleepLatencyRisk} colorClass="bg-red-500" />
+const ResultsView = ({ metrics, onReset }: { metrics: MentalMetrics; onReset: () => void }) => {
+  const clarityColors = getMetricColorClass(metrics.clarityIndex, false); // Higher is better
+  const loopIntensityColors = getMetricColorClass(metrics.loopIntensity, true); // Lower is better
+  const coupleFrictionColors = getMetricColorClass(metrics.coupleFriction, true); // Lower is better
+  const sleepLatencyRiskColors = getMetricColorClass(metrics.sleepLatencyRisk, true); // Lower is better
 
-    <button 
-      onClick={onReset}
-      className="w-full mt-6 bg-slate-600 hover:bg-slate-700 text-white font-bold py-3 px-4 rounded-lg transition-colors"
-    >
-      Registrar otra matriz
-    </button>
-  </div>
-);
+  return (
+    <div>
+      <h2 className="text-2xl font-bold text-slate-800 mb-2 text-center">Análisis de tu Matriz</h2>
+      <p className="text-slate-600 mb-6 text-center">Este es el impacto de tu patrón actual.</p>
+      
+      <MetricDisplay label="Índice de Claridad" value={metrics.clarityIndex} colorClass={clarityColors} />
+      <MetricDisplay label="Intensidad del Bucle" value={metrics.loopIntensity} colorClass={loopIntensityColors} />
+      <MetricDisplay label="Fricción en Pareja" value={metrics.coupleFriction} colorClass={coupleFrictionColors} />
+      <MetricDisplay label="Riesgo de Insomnio" value={metrics.sleepLatencyRisk} colorClass={sleepLatencyRiskColors} />
+
+      <button 
+        onClick={onReset}
+        className="w-full mt-6 bg-slate-600 hover:bg-slate-700 text-white font-bold py-3 px-4 rounded-lg transition-colors"
+      >
+        Registrar otra matriz
+      </button>
+    </div>
+  );
+};
 
 const CausalMatrixForm = () => {
   const { user } = useAuth();
