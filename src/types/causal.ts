@@ -82,15 +82,15 @@ export type CausalMatrixData = CausalInputs & Omit<MentalMetrics, 'interventionS
 };
 
 // The full causal matrix for a single event (as read from Firestore)
-export interface CausalMatrix extends MentalMetrics {
+export interface CausalMatrix extends CausalInputs {
   id: string;
-  timestamp: Date;
   userId: string;
-  rootWound: RootWound;
-  triggerEvent: TriggerEvent;
-  cognitiveBias: CognitiveBias;
-  somaticCompulsion: SomaticCompulsion;
-  feedbackLoop: FeedbackLoop;
+  timestamp: Date; // Assuming conversion from Firestore Timestamp to Date
+  clarityIndex: number;
+  loopIntensity: number;
+  coupleFriction: number;
+  sleepLatencyRisk: number;
+  interventionStrategies: InterventionStrategy[];
 }
 
 // Calculated metrics
