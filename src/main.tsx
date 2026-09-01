@@ -9,6 +9,7 @@ import { BrowserRouter } from 'react-router-dom'; // Import BrowserRouter
 // Register the service worker
 const updateSW = registerSW({
   onNeedRefresh() {
+    console.log('New PWA content available, prompting user to refresh.'); // Added for development verification
     // Prompt the user to refresh the page when new content is available
     toast.custom((t) => (
       <div
