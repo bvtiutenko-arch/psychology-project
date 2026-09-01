@@ -48,7 +48,6 @@ function App() {
     // Check if already installed on load
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (navigator as any).standalone;
     setIsAppInstalled(isStandalone);
-    console.log(`PWA is installed (standalone mode): ${isStandalone}`);
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     window.addEventListener('appinstalled', handleAppInstalled);
