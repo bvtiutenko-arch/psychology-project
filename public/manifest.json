@@ -64,14 +64,14 @@
       "short_name": "Matriz",
       "description": "Registra una nueva matriz causal",
       "url": "/?action=new_matrix",
-      "icons": [{ "src": "/icons/shortcut-matrix.png", "sizes": "96x96" }]
+      "icons": [{ "src": "/icons/shortcut-matrix.png", "sizes": "96x96", "purpose": "any" }]
     },
     {
       "name": "Ver Dashboard",
       "short_name": "Dashboard",
       "description": "Accede a tu panel principal",
       "url": "/?action=view_dashboard",
-      "icons": [{ "src": "/icons/shortcut-dashboard.png", "sizes": "96x96" }]
+      "icons": [{ "src": "/icons/shortcut-dashboard.png", "sizes": "96x96", "purpose": "any" }]
     }
   ]
 }
