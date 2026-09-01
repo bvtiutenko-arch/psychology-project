@@ -89,8 +89,22 @@ self.addEventListener('fetch', (event) => {
         return networkResponse;
       }).catch(() => {
         // If both network and cache fail, serve the offline page
-        console.log('Service Worker: Network request failed, serving offline page.');
-        return caches.match(OFFLINE_URL);
+        console.log('Service Worker: Network request failed, attempting to serve offline page.');
+        return caches.match(OFFLINE_URL).then(cachedResponse => {
+          if (cachedResponse) {
+            console.log('Service Worker: Serving offline page from cache.');
+            return cachedResponse;
+          }
+          console.error('Service Worker: Offline page not found in cache. Serving generic fallback.');
+          // Fallback to a generic offline response if OFFLINE_URL itself is missing from cache
+          return new Response('<h1>Offline</h1><p>You are currently offline and the offline page could not be retrieved.</p>', {
+            status: 503,
+            statusText: 'Service Unavailable',
+            headers: new Headers({
+              'Content-Type': 'text/html; charset=utf-8'
+            })
+          });
+        });
       });
     })
   );
