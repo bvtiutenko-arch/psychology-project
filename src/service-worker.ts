@@ -35,7 +35,10 @@ registerRoute(
     cacheName: 'navigations',
     plugins: [
       {
-        handlerDidError: async () => caches.match(OFFLINE_URL),
+        handlerDidError: async ({ request }) => {
+          console.log(`PWA Service Worker: NetworkFirst failed for ${request.url}. Serving offline page.`);
+          return caches.match(OFFLINE_URL);
+        },
       },
     ],
   })
