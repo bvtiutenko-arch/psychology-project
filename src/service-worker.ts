@@ -36,6 +36,15 @@ registerRoute(
     cacheName: 'navigations',
     plugins: [
       {
+        fetchDidSucceed: async ({ request, response }) => {
+          // If the network request was successful but the status is not 2xx,
+          // treat it as a failure to trigger handlerDidError.
+          if (response.status >= 300 || response.status === 0) {
+            console.warn(`PWA Service Worker: Network navigation for ${request.url} returned status ${response.status}. Falling back to offline.`);
+            throw new Error('Non-2xx network response for navigation');
+          }
+          return response;
+        },
         handlerDidError: async ({ request }) => {
           console.warn(`PWA Service Worker: NetworkFirst failed for ${request.url}. Attempting to serve offline page.`);
           const offlinePage = await caches.match(OFFLINE_URL);
