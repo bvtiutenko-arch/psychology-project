@@ -8,14 +8,16 @@ service cloud.firestore {
 
     // Users can read and write their own mood logs, ensuring they own the record
     match /mood_logs/{logId} {
-      allow read, update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow read, delete: if request.auth != null && request.auth.uid == resource.data.userId;
       allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+      allow update: if request.auth != null && request.auth.uid == resource.data.userId && request.resource.data.userId == request.auth.uid;
     }
     
     // Users can read and write their own SOS sessions, ensuring they own the record
     match /sos_sessions/{sessionId} {
-      allow read, update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow read, delete: if request.auth != null && request.auth.uid == resource.data.userId;
       allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+      allow update: if request.auth != null && request.auth.uid == resource.data.userId && request.resource.data.userId == request.auth.uid;
     }
   }
 }
