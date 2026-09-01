@@ -1,6 +1,7 @@
 {
   "name": "MenteEnCalma",
   "short_name": "MenteEnCalma",
+  "id": "/",
   "description": "Tu copiloto para navegar el sobrepensamiento y la ansiedad en tus relaciones.",
   "start_url": "/",
   "scope": "/",
