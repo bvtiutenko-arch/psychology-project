@@ -1,15 +1,16 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es-PE">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MenteEnCalma - Sin Conexión</title>
+    <title>Estás sin conexión</title>
     <style>
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
-            background-color: #1a202c; /* Tailwind's slate-900 equivalent */
-            color: #e2e8f0; /* Tailwind's slate-200 equivalent */
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #1a202c; /* Matches theme_color from manifest */
+            color: #e2e8f0; /* Light text for dark background */
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
@@ -18,35 +19,25 @@
             padding: 20px;
             box-sizing: border-box;
         }
-        .container {
-            max-width: 500px;
-            padding: 30px;
-            border-radius: 10px;
-            background-color: #2d3748; /* Tailwind's slate-800 equivalent */
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
         h1 {
-            font-size: 2.5em;
-            margin-bottom: 15px;
-            color: #63b3ed; /* Tailwind's blue-300 equivalent */
+            font-size: 2em;
+            margin-bottom: 0.5em;
         }
         p {
             font-size: 1.1em;
-            line-height: 1.6;
-            margin-bottom: 25px;
+            line-height: 1.5;
+            max-width: 600px;
         }
         .icon {
             font-size: 4em;
-            margin-bottom: 20px;
+            margin-bottom: 0.5em;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="icon">🔌</div>
-        <h1>¡Estás sin conexión!</h1>
-        <p>Parece que no tienes conexión a internet. Por favor, verifica tu conexión y vuelve a intentarlo.</p>
-        <p>Mientras tanto, puedes seguir usando las funcionalidades offline de MenteEnCalma.</p>
-    </div>
+    <div class="icon">🌐</div>
+    <h1>¡Estás sin conexión!</h1>
+    <p>Parece que no tienes conexión a internet. Por favor, verifica tu conexión y vuelve a intentarlo.</p>
+    <p>Algunas funciones pueden estar disponibles sin conexión.</p>
 </body>
 </html>

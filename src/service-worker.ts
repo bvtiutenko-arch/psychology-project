@@ -14,16 +14,16 @@ const OFFLINE_URL = '/offline.html'; // Define an offline fallback page
 precacheAndRoute(self.__WB_MANIFEST);
 
 self.addEventListener('install', (event) => {
-  console.log('Service Worker: Installing...');
+  console.log('PWA Service Worker: Installing...');
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => {
-        console.log('Service Worker: Caching offline page');
+        console.log('PWA Service Worker: Caching offline page');
         return cache.add(OFFLINE_URL);
       })
       .then(() => self.skipWaiting())
       .catch((error) => {
-        console.error('Service Worker: Offline page caching failed', error);
+        console.error('PWA Service Worker: Offline page caching failed', error);
       })
   );
 });
@@ -61,14 +61,14 @@ registerRoute(
 );
 
 self.addEventListener('activate', (event) => {
-  console.log('Service Worker: Activating...');
+  console.log('PWA Service Worker: Activating...');
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       const expectedCacheNames = [CACHE_NAME, 'navigations', 'images', 'static-resources'];
       return Promise.all(
         cacheNames.map((cacheName) => {
           if (!expectedCacheNames.includes(cacheName)) {
-            console.log('Service Worker: Deleting old cache', cacheName);
+            console.log('PWA Service Worker: Deleting old cache', cacheName);
             return caches.delete(cacheName);
           }
           return null;

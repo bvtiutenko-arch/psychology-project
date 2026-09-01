@@ -9,10 +9,10 @@ const registerServiceWorker = () => {
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('/service-worker.js')
         .then(registration => {
-          console.log('Service Worker registered with scope:', registration.scope);
+          console.log('PWA Service Worker registered with scope:', registration.scope);
         })
         .catch(error => {
-          console.error('Service Worker registration failed:', error);
+          console.error('PWA Service Worker registration failed:', error);
         });
     });
   }
