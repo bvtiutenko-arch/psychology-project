@@ -4,7 +4,7 @@ import { db } from '../../firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { RootWound, TriggerEvent, CognitiveBias, SomaticCompulsion, FeedbackLoop, MentalMetrics } from '../../types/causal';
 import toast from 'react-hot-toast';
-import { calculateMetrics } from '../../lib/metrics';
+import { calculateMetrics } from '../../services/patternEngine';
 
 const MetricDisplay = ({ label, value, colorClass }: { label: string; value: number; colorClass: string }) => (
   <div className="mb-4">
