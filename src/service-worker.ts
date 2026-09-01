@@ -1,6 +1,6 @@
 /// <reference lib="webworker" />
 import { precacheAndRoute } from 'workbox-precaching';
-import { registerRoute, NavigationRoute } from 'workbox-routing';
+import { registerRoute } from 'workbox-routing';
 import { NetworkFirst, CacheFirst, StaleWhileRevalidate } from 'workbox-strategies';
 
 declare const self: ServiceWorkerGlobalScope & {
@@ -30,16 +30,15 @@ self.addEventListener('install', (event) => {
 
 // Navigation route: always try network first for navigation, then fall back to offline page
 registerRoute(
-  new NavigationRoute(
-    new NetworkFirst({
-      cacheName: 'navigations',
-      plugins: [
-        {
-          handlerDidError: async () => caches.match(OFFLINE_URL),
-        },
-      ],
-    })
-  )
+  ({ request }) => request.mode === 'navigate',
+  new NetworkFirst({
+    cacheName: 'navigations',
+    plugins: [
+      {
+        handlerDidError: async () => caches.match(OFFLINE_URL),
+      },
+    ],
+  })
 );
 
 // Cache images with a Cache First strategy
