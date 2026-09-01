@@ -13,7 +13,13 @@ export default defineConfig({
       srcDir: 'src',
       filename: 'service-worker.ts', // This is the custom service worker file
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,webmanifest}'],
+        globPatterns: [
+          '**/*.{js,css,html}',
+          '**/*.{ico,png,svg,webmanifest}',
+          'assets/*', // For any assets in the assets folder
+          'icons/*', // For icons
+          'screenshots/*', // For screenshots
+        ],
       },
       devOptions: {
         enabled: true, // Enable PWA in development for testing

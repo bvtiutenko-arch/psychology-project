@@ -116,11 +116,6 @@ function App() {
     };
 
     navigator.serviceWorker.addEventListener('message', handleServiceWorkerMessage);
-    window.addEventListener('online', handleOnlineStatusChange);
-    window.addEventListener('offline', handleOnlineStatusChange);
-
-    // Initial count fetch and setup for periodic refresh
-    refreshPendingCount();
     const intervalId = setInterval(refreshPendingCount, 30000); // Refresh every 30 seconds
 
     return () => {
@@ -129,7 +124,7 @@ function App() {
       window.removeEventListener('offline', handleOnlineStatusChange);
       clearInterval(intervalId);
     };
-  }, [user]); // Re-run if user changes (e.g., logs in/out)
+  }, [user, isOnline]); // Re-run if user or online status changes
 
   useEffect(() => {
     if (!loading && user) {
