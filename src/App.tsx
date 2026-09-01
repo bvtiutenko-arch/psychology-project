@@ -60,6 +60,10 @@ function App() {
 
   const handleInstallClick = async () => {
     if (deferredPrompt) {
+      // Provide haptic feedback for Android users
+      if (navigator.vibrate) {
+        navigator.vibrate(50); // Vibrate for 50ms
+      }
       // Show the install prompt
       (deferredPrompt as any).prompt();
       // Wait for the user to respond to the prompt
