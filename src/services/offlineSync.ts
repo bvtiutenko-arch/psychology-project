@@ -60,6 +60,14 @@ export async function getPendingCausalMatrices(): Promise<PendingCausalMatrix[]>
 }
 
 /**
+ * Retrieves the count of pending causal matrices from IndexedDB.
+ */
+export async function getPendingCausalMatricesCount(): Promise<number> {
+  const database = await initDB();
+  return database.count(STORE_NAME);
+}
+
+/**
  * Removes a specific pending causal matrix from IndexedDB after successful synchronization.
  * @param id The ID of the pending matrix to remove.
  */
