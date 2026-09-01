@@ -9,6 +9,8 @@ import { getMetricColorClass } from '../../lib/metrics';
 import SelectField from '../ui/SelectField';
 import { savePendingCausalMatrix, syncPendingCausalMatrices } from '../../services/offlineSync';
 
+const isDevelopment = import.meta.env.DEV; // Determine if in development environment
+
 // Initial state for the form data
 const initialFormData: CausalInputs = {
   rootWound: '' as RootWound,
@@ -159,27 +161,24 @@ const CausalMatrixForm = () => {
 
       setLatestMetrics({ ...mentalMetricsWithoutStrategies, interventionStrategies });
       toast.success('Matriz Causal registrada con éxito.');
-      setShowSummary(false); // Hide summary after successful submission
+      setShowSummary(false);
     } catch (error) {
       console.error("Error adding document to Firestore, attempting offline save: ", error);
-      // If Firestore fails, save to IndexedDB
       await savePendingCausalMatrix(formData, user.uid);
-      setLatestMetrics({ ...mentalMetricsWithoutStrategies, interventionStrategies }); // Still show metrics
+      setLatestMetrics({ ...mentalMetricsWithoutStrategies, interventionStrategies });
       toast.success('Matriz Causal guardada localmente. Se sincronizará cuando haya conexión.');
-      setShowSummary(false); // Hide summary
+      setShowSummary(false);
 
-      // Register background sync event
       if ('serviceWorker' in navigator && 'SyncManager' in window) {
         navigator.serviceWorker.ready.then(registration => {
           registration.sync.register('sync-causal-matrices')
-            .then(() => console.log('Background sync registered: sync-causal-matrices'))
+            .then(() => { if (isDevelopment) console.log('Background sync registered: sync-causal-matrices'); })
             .catch(err => console.error('Failed to register background sync:', err));
         });
       } else {
-        console.warn('Background Sync API not supported or service worker not ready.');
+        if (isDevelopment) console.warn('Background Sync API not supported or service worker not ready.');
       }
 
-      // Attempt to sync immediately in case connection was restored quickly
       await syncPendingCausalMatrices(user.uid);
     } finally {
       setIsSubmitting(false);

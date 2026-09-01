@@ -5,23 +5,24 @@ import Spinner from './components/ui/Spinner';
 import { Toaster } from 'react-hot-toast';
 import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom'; // Import routing components
 import CausalMatrixForm from './components/causal/CausalMatrixForm'; // Import CausalMatrixForm
-import { useEffect, useState, useRef, useCallback } from 'react'; // Import useRef, useCallback
-import { syncPendingCausalMatrices, getPendingCausalMatricesCount, clearPendingCausalMatricesForUser } from './services/offlineSync'; // Import clearPendingCausalMatricesForUser
-import toast from 'react-hot-toast'; // Explicitly import toast
-import { RotateCw, Download } from 'lucide-react'; // Import Lucide icons
+import { useEffect, useState, useRef, useCallback } from 'react';
+import { syncPendingCausalMatrices, getPendingCausalMatricesCount, clearPendingCausalMatricesForUser } from './services/offlineSync';
+import toast from 'react-hot-toast';
+import { RotateCw, Download } from 'lucide-react';
+
+const isDevelopment = import.meta.env.DEV; // Determine if in development environment
 
 function App() {
   const { user, loading } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
-  const prevUserIdRef = useRef<string | null>(null); // To store the previous user ID for logout cleanup
+  const prevUserIdRef = useRef<string | null>(null);
 
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [pendingMatricesCount, setPendingMatricesCount] = useState(0);
-  const [deferredPrompt, setDeferredPrompt] = useState<Event | null>(null); // State for A2HS prompt
-  const [isAppInstalled, setIsAppInstalled] = useState(false); // State to track if app is installed
+  const [deferredPrompt, setDeferredPrompt] = useState<Event | null>(null);
+  const [isAppInstalled, setIsAppInstalled] = useState(false);
 
-  // Function to refresh the pending matrices count
   const refreshPendingCount = useCallback(async () => {
     if (user) {
       const count = await getPendingCausalMatricesCount();
@@ -29,23 +30,21 @@ function App() {
     } else {
       setPendingMatricesCount(0);
     }
-  }, [user]); // Dependency on user
+  }, [user]);
 
-  // Effect for PWA installation prompt
   useEffect(() => {
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e);
-      console.log('beforeinstallprompt fired');
+      if (isDevelopment) console.log('beforeinstallprompt fired');
     };
 
     const handleAppInstalled = () => {
       setIsAppInstalled(true);
-      setDeferredPrompt(null); // Clear the prompt once installed
-      console.log('PWA installed successfully!');
+      setDeferredPrompt(null);
+      if (isDevelopment) console.log('PWA installed successfully!');
     };
 
-    // Check if already installed on load
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (navigator as any).standalone;
     setIsAppInstalled(isStandalone);
 
@@ -53,40 +52,35 @@ function App() {
     window.addEventListener('appinstalled', handleAppInstalled);
 
     return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('beforeinstallPrompt', handleBeforeInstallPrompt);
       window.removeEventListener('appinstalled', handleAppInstalled);
     };
-  }, []); // Empty dependency array means this runs once on mount
+  }, []);
 
   const handleInstallClick = async () => {
     if (deferredPrompt) {
-      // Provide haptic feedback for Android users
       if (navigator.vibrate) {
-        navigator.vibrate(50); // Vibrate for 50ms
+        navigator.vibrate(50);
       }
-      // Show the install prompt
       (deferredPrompt as any).prompt();
-      // Wait for the user to respond to the prompt
       const { outcome } = await (deferredPrompt as any).userChoice;
-      console.log(`User response to the install prompt: ${outcome}`);
-      // We've used the prompt, and can't use it again, so clear it.
+      if (isDevelopment) console.log(`User response to the install prompt: ${outcome}`);
       setDeferredPrompt(null);
       if (outcome === 'accepted') {
         toast.success('¡Aplicación instalada con éxito!');
-        setIsAppInstalled(true); // Update state immediately
+        setIsAppInstalled(true);
       } else {
         toast.error('Instalación cancelada.');
       }
     }
   };
 
-  // Effect to handle online/offline status and synchronization
   useEffect(() => {
     const handleOnlineStatusChange = async () => {
       const currentOnlineStatus = navigator.onLine;
       setIsOnline(currentOnlineStatus);
       if (currentOnlineStatus && user) {
-        console.log('App is online, attempting to sync pending matrices...');
+        if (isDevelopment) console.log('App is online, attempting to sync pending matrices...');
         await syncPendingCausalMatrices(user.uid);
         await refreshPendingCount();
       } else {
@@ -97,12 +91,10 @@ function App() {
     window.addEventListener('online', handleOnlineStatusChange);
     window.addEventListener('offline', handleOnlineStatusChange);
 
-    // Initial count fetch and setup for periodic refresh
     refreshPendingCount();
-    // Add listener for messages from service worker
     const handleServiceWorkerMessage = async (event: MessageEvent) => {
       if (event.data && event.data.type === 'SYNC_PENDING_CAUSAL_MATRICES') {
-        console.log('App.tsx: Received SYNC_PENDING_CAUSAL_MATRICES message from Service Worker.');
+        if (isDevelopment) console.log('App.tsx: Received SYNC_PENDING_CAUSAL_MATRICES message from Service Worker.');
         if (user) {
           toast.loading('Sincronizando matrices pendientes en segundo plano...');
           await syncPendingCausalMatrices(user.uid);
@@ -110,37 +102,34 @@ function App() {
           toast.dismiss();
           toast.success('Sincronización de matrices pendientes completada.');
         } else {
-          console.warn('App.tsx: Cannot sync pending matrices: User not authenticated.');
+          if (isDevelopment) console.warn('App.tsx: Cannot sync pending matrices: User not authenticated.');
         }
       }
     };
 
     navigator.serviceWorker.addEventListener('message', handleServiceWorkerMessage);
-    const intervalId = setInterval(refreshPendingCount, 30000); // Refresh every 30 seconds
+    const intervalId = setInterval(refreshPendingCount, 30000);
 
     return () => {
-      navigator.serviceWorker.removeEventListener('message', handleServiceWorkerMessage); // Cleanup
+      navigator.serviceWorker.removeEventListener('message', handleServiceWorkerMessage);
       window.removeEventListener('online', handleOnlineStatusChange);
       window.removeEventListener('offline', handleOnlineStatusChange);
       clearInterval(intervalId);
     };
-  }, [user, isOnline]); // Re-run if user or online status changes
+  }, [user, isOnline]);
 
-  // Effect to handle user logout and clear pending matrices for the logged-out user
   useEffect(() => {
     if (!loading) {
       if (user) {
-        // User logged in or is already logged in
         prevUserIdRef.current = user.uid;
       } else {
-        // User logged out
         if (prevUserIdRef.current) {
-          console.log(`User ${prevUserIdRef.current} logged out. Clearing their pending matrices.`);
+          if (isDevelopment) console.log(`User ${prevUserIdRef.current} logged out. Clearing their pending matrices.`);
           clearPendingCausalMatricesForUser(prevUserIdRef.current)
             .then(() => {
               toast.success('Matrices pendientes del usuario anterior limpiadas.');
-              prevUserIdRef.current = null; // Clear ref after cleanup
-              refreshPendingCount(); // Refresh count after cleanup
+              prevUserIdRef.current = null;
+              refreshPendingCount();
             })
             .catch(error => {
               console.error('Error clearing pending matrices for previous user:', error);
@@ -149,14 +138,14 @@ function App() {
         }
       }
     }
-  }, [loading, user, refreshPendingCount]); // Depend on loading, user, and refreshPendingCount
+  }, [loading, user, refreshPendingCount]);
 
   useEffect(() => {
     if (!loading && user) {
       const params = new URLSearchParams(location.search);
       const action = params.get('action');
 
-      let targetPath = location.pathname; // Default to current path
+      let targetPath = location.pathname;
       let shouldNavigate = false;
 
       if (action === 'new_matrix') {
@@ -167,9 +156,9 @@ function App() {
         shouldNavigate = true;
       }
 
-      if (action) { // If an action parameter was present, we need to clear it from the URL
+      if (action) {
         params.delete('action');
-        shouldNavigate = true; // Ensure navigation happens to clear the param
+        shouldNavigate = true;
       }
 
       if (shouldNavigate) {
@@ -177,25 +166,23 @@ function App() {
         navigate(targetPath + (newSearch ? `?${newSearch}` : ''), { replace: true });
       }
 
-      // Attempt to sync pending matrices when user is authenticated on initial load/login
-      // This is in addition to the online event listener
-      if (isOnline) { // Only attempt sync if currently online
-        syncPendingCausalMatrices(user.uid).then(() => refreshPendingCount()); // Refresh count after sync
+      if (isOnline) {
+        syncPendingCausalMatrices(user.uid).then(() => refreshPendingCount());
       }
-      refreshPendingCount(); // Initial refresh when user loads
+      refreshPendingCount();
     }
   }, [loading, user, location.search, navigate, location.pathname, isOnline]);
 
   const handleManualSync = async () => {
     if (user && isOnline) {
       if (navigator.vibrate) {
-        navigator.vibrate(50); // Vibrate for 50ms
+        navigator.vibrate(50);
       }
       toast.loading('Intentando sincronizar matrices pendientes...');
       await syncPendingCausalMatrices(user.uid);
-      const newPendingCount = await getPendingCausalMatricesCount(); // Get the updated count directly
-      setPendingMatricesCount(newPendingCount); // Update state
-      toast.dismiss(); // Dismiss loading toast
+      const newPendingCount = await getPendingCausalMatricesCount();
+      setPendingMatricesCount(newPendingCount);
+      toast.dismiss();
 
       if (newPendingCount === 0) {
         toast.success('Todas las matrices pendientes han sido sincronizadas.');

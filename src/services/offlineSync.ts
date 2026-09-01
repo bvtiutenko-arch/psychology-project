@@ -5,6 +5,8 @@ import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import toast from 'react-hot-toast';
 import { calculateCausalMatrixMetrics } from './causalEngine';
 
+const isDevelopment = import.meta.env.DEV; // Determine if in development environment
+
 const DB_NAME = 'menteEnCalmaDB';
 const STORE_NAME = 'pendingCausalMatrices';
 const DB_VERSION = 1;
@@ -47,7 +49,7 @@ export async function savePendingCausalMatrix(inputs: CausalInputs, userId: stri
   };
 
   await database.put(STORE_NAME, pendingMatrix);
-  console.log('Causal matrix saved locally:', pendingMatrix);
+  if (isDevelopment) console.log('Causal matrix saved locally:', pendingMatrix);
   return id;
 }
 
@@ -74,7 +76,7 @@ export async function getPendingCausalMatricesCount(): Promise<number> {
 export async function clearPendingCausalMatrix(id: string): Promise<void> {
   const database = await initDB();
   await database.delete(STORE_NAME, id);
-  console.log(`Pending causal matrix with ID ${id} cleared from local storage.`);
+  if (isDevelopment) console.log(`Pending causal matrix with ID ${id} cleared from local storage.`);
 }
 
 /**
@@ -94,7 +96,7 @@ export async function clearPendingCausalMatricesForUser(userId: string): Promise
     await store.delete(matrix.id);
   }
   await tx.done;
-  console.log(`Cleared ${matricesToDelete.length} pending causal matrices for user ${userId}.`);
+  if (isDevelopment) console.log(`Cleared ${matricesToDelete.length} pending causal matrices for user ${userId}.`);
 }
 
 /**
@@ -103,7 +105,7 @@ export async function clearPendingCausalMatricesForUser(userId: string): Promise
  */
 export async function syncPendingCausalMatrices(userId: string): Promise<void> {
   if (!navigator.onLine) {
-    console.log('Offline: Skipping sync of pending causal matrices.');
+    if (isDevelopment) console.log('Offline: Skipping sync of pending causal matrices.');
     return;
   }
 
@@ -117,18 +119,18 @@ export async function syncPendingCausalMatrices(userId: string): Promise<void> {
   }
 
   if (pendingMatrices.length === 0) {
-    console.log('No pending causal matrices to sync.');
+    if (isDevelopment) console.log('No pending causal matrices to sync.');
     return;
   }
 
-  console.log(`Attempting to sync ${pendingMatrices.length} pending causal matrices...`);
+  if (isDevelopment) console.log(`Attempting to sync ${pendingMatrices.length} pending causal matrices...`);
   let syncedCount = 0;
   let failedCount = 0;
   const failedMatrixIds: string[] = [];
 
   for (const matrix of pendingMatrices) {
     if (matrix.userId !== userId) {
-      console.warn(`Skipping pending matrix for different user: ${matrix.userId} (current user: ${userId})`);
+      if (isDevelopment) console.warn(`Skipping pending matrix for different user: ${matrix.userId} (current user: ${userId})`);
       continue;
     }
 
@@ -142,17 +144,16 @@ export async function syncPendingCausalMatrices(userId: string): Promise<void> {
         feedbackLoop: matrix.feedbackLoop,
         ...matrix.metrics,
         interventionStrategies: matrix.interventionStrategies,
-        timestamp: serverTimestamp(), // Use server timestamp for actual record
+        timestamp: serverTimestamp(),
       };
       await addDoc(collection(db, 'causal_matrices'), dataToStore);
       await clearPendingCausalMatrix(matrix.id);
       syncedCount++;
-      console.log(`Successfully synced pending matrix: ${matrix.id}`);
+      if (isDevelopment) console.log(`Successfully synced pending matrix: ${matrix.id}`);
     } catch (error) {
       console.error(`Failed to sync pending matrix ${matrix.id}:`, error);
       failedCount++;
       failedMatrixIds.push(matrix.id.substring(0, 8));
-      // Keep it in IndexedDB for a future attempt
     }
   }
 
