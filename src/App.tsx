@@ -163,6 +163,9 @@ function App() {
 
   const handleManualSync = async () => {
     if (user && isOnline) {
+      if (navigator.vibrate) {
+        navigator.vibrate(50); // Vibrate for 50ms
+      }
       toast.loading('Intentando sincronizar matrices pendientes...');
       await syncPendingCausalMatrices(user.uid);
       const newPendingCount = await getPendingCausalMatricesCount(); // Get the updated count directly
