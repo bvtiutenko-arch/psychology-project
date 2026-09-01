@@ -28,5 +28,37 @@
       "type": "image/png",
       "purpose": "maskable"
     }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshots/screenshot-mobile-1.png",
+      "sizes": "375x667",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Dashboard principal"
+    },
+    {
+      "src": "/screenshots/screenshot-mobile-2.png",
+      "sizes": "375x667",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Formulario de matriz causal"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Registrar Matriz",
+      "short_name": "Matriz",
+      "description": "Registra una nueva matriz causal",
+      "url": "/?action=new_matrix",
+      "icons": [{ "src": "/icons/shortcut-matrix.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Ver Dashboard",
+      "short_name": "Dashboard",
+      "description": "Accede a tu panel principal",
+      "url": "/?action=view_dashboard",
+      "icons": [{ "src": "/icons/shortcut-dashboard.png", "sizes": "96x96" }]
+    }
   ]
 }
