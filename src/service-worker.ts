@@ -13,6 +13,7 @@ const OFFLINE_URL = '/offline.html'; // Define an offline fallback page
 
 // This will be replaced by the Workbox build process with the list of files to precache
 precacheAndRoute(self.__WB_MANIFEST);
+console.log('PWA Service Worker: Precache manifest loaded with', self.__WB_MANIFEST.length, 'entries.');
 
 self.addEventListener('install', (event) => {
   console.log('PWA Service Worker: Installing...');
