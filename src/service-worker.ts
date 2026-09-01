@@ -12,6 +12,7 @@ precacheAndRoute([
   ...self.__WB_MANIFEST,
   { url: '/offline.html', revision: null },
   { url: '/', revision: null }, // Explicitly precache the root path, which typically resolves to index.html
+  { url: '/?source=pwa', revision: null }, // Explicitly precache the start_url from manifest.json
 ]);
 
 // Cache page navigations (HTML)
