@@ -1,5 +1,6 @@
 import { auth } from '../../firebase';
 import { useAuth } from '../../hooks/useAuth';
+import CausalMatrixForm from '../causal/CausalMatrixForm';
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -21,9 +22,8 @@ const Dashboard = () => {
           Cerrar sesión
         </button>
       </header>
-      <main className="text-center p-10 border-2 border-dashed rounded-lg bg-white">
-        <h2 className="text-xl font-semibold text-slate-700">Próximamente</h2>
-        <p className="text-gray-500 mt-2">Aquí se mostrará la Matriz Causal y las herramientas de MenteEnCalma.</p>
+      <main>
+        <CausalMatrixForm />
       </main>
     </div>
   );
