@@ -170,6 +170,11 @@ function App() {
       <div className={`fixed top-0 left-0 right-0 p-1 text-center text-xs font-medium z-50 flex items-center justify-center gap-2
                   ${isOnline ? 'bg-green-500 text-white' : 'bg-red-500 text-white'}`}>
         <span>{isOnline ? 'Online' : 'Offline'}</span>
+        {isAppInstalled && (
+          <span className="ml-2 px-2 py-0.5 rounded-full bg-blue-500 text-white text-xs font-bold">
+            App Instalada
+          </span>
+        )}
         {pendingMatricesCount > 0 && (
           <button
             onClick={handleManualSync}
