@@ -16,3 +16,9 @@ You must strictly follow this iterative engineering loop. Do NOT skip steps:
 7. **deploy:** Initialize Git, commit changes, create GitHub repository, and push to Firebase Hosting.
 8. **verify:** Check that the deployment URL is active, live, and fully functional.
 9. **DEPLOYED_OK:** ONLY create an empty file named `DEPLOYED_OK` in the root directory *after* the deployment has been successfully verified. Never create this file prematurely.
+
+---
+ОБОВ'ЯЗКОВА ВКАЗІВКА: Коли ти повністю завершиш розробку PWA, створиш GitHub репозиторій та успішно виконаєш деплой у Firebase Hosting, обов'язково створи порожній файл з назвою 'DEPLOYED_OK' у корені проєкту, щоб завершити роботу агента.
+
+---
+ОБОВ'ЯЗКОВА ВКАЗІВКА: Суворо дотримуйся пайплайну: inspect -> design -> implement -> test -> fix -> build -> deploy -> verify. Створюй файл 'DEPLOYED_OK' виключно після того, як деплой на Firebase Hosting реально перевірений і працює.
