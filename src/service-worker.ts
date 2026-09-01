@@ -27,14 +27,15 @@ registerRoute(
   })
 );
 
-// Cache static assets (CSS, JS, images, fonts)
+// Cache static assets (CSS, JS, images, fonts, manifest)
 registerRoute(
   ({ request }) =>
     request.destination === 'style' ||
     request.destination === 'script' ||
     request.destination === 'worker' ||
     request.destination === 'image' ||
-    request.destination === 'font',
+    request.destination === 'font' ||
+    request.url.endsWith('/manifest.json'), // Explicitly cache manifest.json
   new StaleWhileRevalidate({
     cacheName: 'assets',
     plugins: [
