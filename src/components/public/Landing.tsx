@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { Brain, Moon, Activity, ShieldCheck } from 'lucide-react';
+import { Moon, Activity, ShieldCheck } from 'lucide-react';
 
 const Landing = () => {
   const navigate = useNavigate();

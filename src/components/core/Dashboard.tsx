@@ -4,7 +4,7 @@ import { getCausalMatrices } from '../../services/db';
 import { CausalMatrix } from '../../types/causal';
 import { useEffect, useState, ReactNode } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Plus, Moon, Activity, Heart, Brain, TrendingDown, Sparkles, Calendar, BarChart, Settings, Network, History } from 'lucide-react';
+import { Plus, Moon, Activity, Heart, TrendingDown, Sparkles, Calendar, BarChart, Settings, Network, History } from 'lucide-react';
 import { Timestamp } from 'firebase/firestore';
 
 const MetricCard = ({ title, value, change, invertColor }: { title: string; value?: number; change?: number | null; invertColor?: boolean }) => {
@@ -190,7 +190,7 @@ const Dashboard = () => {
         <section className="mb-8">
           <h2 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
             <TrendingDown className="w-5 h-5 text-green-500" />
-            What Helps You?
+            ¿Qué te ayuda?
           </h2>
           <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
             <ul className="space-y-3">
