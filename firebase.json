@@ -1,6 +1,6 @@
 {
   "hosting": {
-    "site": "menteencalma",
+    "site": "menteencalma-d1db9",
     "public": "dist",
     "ignore": [
       "firebase.json",
