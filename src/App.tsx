@@ -5,6 +5,7 @@ import Spinner from './components/ui/Spinner';
 import { Toaster } from 'react-hot-toast';
 import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom'; // Import routing components
 import CausalMatrixForm from './components/causal/CausalMatrixForm'; // Import CausalMatrixForm
+import NightMode from './components/core/NightMode'; // Import NightMode
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { syncPendingCausalMatrices, getPendingCausalMatricesCount, clearPendingCausalMatricesForUser } from './services/offlineSync';
 import { saveSessionHistory } from './services/db'; // Import DB function
@@ -250,6 +251,7 @@ function App() {
           <>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/new-matrix" element={<CausalMatrixForm />} />
+            <Route path="/night-mode" element={<NightMode />} />
             {/* Redirect root path to dashboard if authenticated and no specific action */}
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
             {/* Redirect any other path to dashboard if authenticated and no specific action */}

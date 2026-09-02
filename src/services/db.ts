@@ -8,9 +8,11 @@ import {
   query, 
   where, 
   serverTimestamp,
-  Timestamp 
+  Timestamp,
+  orderBy 
 } from 'firebase/firestore';
-import { CausalMatrixData } from '../types/causal';
+import { CausalMatrixData, CausalMatrix } from '../types/causal';
+import { NightModeEntry } from '../types/nightMode';
 
 export interface TestResult {
   id?: string;
@@ -94,5 +96,26 @@ export async function updateSessionHistory(sessionId: string, updates: Partial<S
  */
 export async function saveCausalMatrix(data: CausalMatrixData): Promise<string> {
   const docRef = await addDoc(collection(db, 'causal_matrices'), data);
+  return docRef.id;
+}
+
+/**
+ * Retrieves all causal matrices for a specific user, ordered by timestamp descending.
+ * @param userId The ID of the user.
+ * @returns An array of CausalMatrix objects.
+ */
+export async function getCausalMatrices(userId: string): Promise<CausalMatrix[]> {
+  const q = query(collection(db, 'causal_matrices'), where('userId', '==', userId), orderBy('timestamp', 'desc'));
+  const querySnapshot = await getDocs(q);
+  return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as CausalMatrix));
+}
+
+/**
+ * Saves a night mode entry to Firestore.
+ * @param entry The night mode entry data.
+ * @returns The ID of the newly created document.
+ */
+export async function saveNightModeEntry(entry: Omit<NightModeEntry, 'id'>): Promise<string> {
+  const docRef = await addDoc(collection(db, 'night_mode_entries'), entry);
   return docRef.id;
 }
