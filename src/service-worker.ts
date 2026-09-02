@@ -38,6 +38,15 @@ self.addEventListener('sync', (event) => {
       })
     );
   }
+  if (event.tag === 'sync-tomorrow-tasks') {
+    event.waitUntil(
+      (self as any).clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients: any[]) => {
+        clients.forEach((client) => {
+          client.postMessage({ type: 'SYNC_PENDING_TOMORROW_TASKS' });
+        });
+      })
+    );
+  }
 });
 
 // Handle skip waiting for PWA updates

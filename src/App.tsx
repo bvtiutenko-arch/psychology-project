@@ -22,6 +22,9 @@ import {
   syncPendingNightModeEntries,
   getPendingNightModeEntriesCount,
   clearPendingNightModeEntriesForUser,
+  syncPendingTomorrowTasks,
+  getPendingTomorrowTasksCount,
+  clearPendingTomorrowTasksForUser,
 } from './services/offlineSync';
 import { saveSessionHistory } from './services/db';
 import toast from 'react-hot-toast';
@@ -44,7 +47,8 @@ function App() {
     if (user) {
       const matrixCount = await getPendingCausalMatricesCount(user.uid);
       const nightModeCount = await getPendingNightModeEntriesCount(user.uid);
-      setPendingItemsCount(matrixCount + nightModeCount);
+      const tomorrowCount = await getPendingTomorrowTasksCount(user.uid);
+      setPendingItemsCount(matrixCount + nightModeCount + tomorrowCount);
     } else {
       setPendingItemsCount(0);
     }
@@ -101,6 +105,7 @@ function App() {
         if (isDevelopment) console.log('App is online, attempting to sync pending items...');
         await syncPendingCausalMatrices(user.uid);
         await syncPendingNightModeEntries(user.uid);
+        await syncPendingTomorrowTasks(user.uid);
         await refreshPendingCount();
       } else {
         await refreshPendingCount();
@@ -156,6 +161,28 @@ function App() {
           if (isDevelopment) console.warn('App.tsx: Cannot sync pending night mode entries: User not authenticated.');
         }
       }
+      if (event.data && event.data.type === 'SYNC_PENDING_TOMORROW_TASKS') {
+        if (isDevelopment) console.log('App.tsx: Received SYNC_PENDING_TOMORROW_TASKS message from Service Worker.');
+        if (user) {
+          try {
+            const toastId = toast.loading('Sincronizando tareas pendientes en segundo plano...');
+            await syncPendingTomorrowTasks(user.uid, true);
+            const newPendingCount = await getPendingTomorrowTasksCount(user.uid);
+            toast.dismiss(toastId);
+            if (newPendingCount === 0) {
+              toast.success('Sincronización de tareas pendientes completada.');
+            } else {
+              toast.error(`Sincronización parcial. Quedan ${newPendingCount} pendientes.`);
+            }
+            await refreshPendingCount();
+          } catch (error) {
+            console.error('Error during background sync:', error);
+            toast.error('Error durante la sincronización en segundo plano.');
+          }
+        } else {
+          if (isDevelopment) console.warn('App.tsx: Cannot sync pending tomorrow tasks: User not authenticated.');
+        }
+      }
     };
 
     navigator.serviceWorker.addEventListener('message', handleServiceWorkerMessage);
@@ -167,7 +194,7 @@ function App() {
       window.removeEventListener('offline', handleOnlineStatusChange);
       clearInterval(intervalId);
     };
-  }, [user, refreshPendingCount]);
+  }, [user, refreshPendingCount])
 
   useEffect(() => {
     if (!loading) {
@@ -178,6 +205,7 @@ function App() {
           if (isDevelopment) console.log(`User ${prevUserIdRef.current} logged out. Clearing their pending items.`);
           clearPendingCausalMatricesForUser(prevUserIdRef.current)
             .then(() => clearPendingNightModeEntriesForUser(prevUserIdRef.current!))
+            .then(() => clearPendingTomorrowTasksForUser(prevUserIdRef.current!))
             .then(() => {
               toast.success('Datos pendientes del usuario anterior limpiados.');
               prevUserIdRef.current = null;
@@ -221,10 +249,11 @@ function App() {
       if (isOnline) {
         syncPendingCausalMatrices(user.uid).then(() => refreshPendingCount());
         syncPendingNightModeEntries(user.uid).then(() => refreshPendingCount());
+        syncPendingTomorrowTasks(user.uid).then(() => refreshPendingCount());
       }
       refreshPendingCount();
     }
-  }, [loading, user, location.search, navigate, location.pathname, isOnline]);
+  }, [loading, user, location.search, navigate, location.pathname, isOnline])
 
   const handleManualSync = async () => {
     if (user && isOnline) {
@@ -235,9 +264,11 @@ function App() {
       try {
         await syncPendingCausalMatrices(user.uid, true);
         await syncPendingNightModeEntries(user.uid, true);
+        await syncPendingTomorrowTasks(user.uid, true);
         const matrixCount = await getPendingCausalMatricesCount(user.uid);
         const nightModeCount = await getPendingNightModeEntriesCount(user.uid);
-        const totalPending = matrixCount + nightModeCount;
+        const tomorrowCount = await getPendingTomorrowTasksCount(user.uid);
+        const totalPending = matrixCount + nightModeCount + tomorrowCount;
         setPendingItemsCount(totalPending);
         toast.dismiss(toastId);
 

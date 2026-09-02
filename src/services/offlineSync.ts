@@ -1,6 +1,7 @@
 import { openDB, IDBPDatabase } from 'idb';
 import { CausalInputs, PendingCausalMatrix, CausalMatrixData } from '../types/causal';
 import { PendingNightModeEntry } from '../types/nightMode';
+import { PendingTomorrowTask } from '../types/tomorrowBox';
 import { db } from '../firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import toast from 'react-hot-toast';
@@ -11,7 +12,8 @@ const isDevelopment = import.meta.env.DEV; // Determine if in development enviro
 const DB_NAME = 'menteEnCalmaDB';
 const CAUSAL_STORE_NAME = 'pendingCausalMatrices';
 const NIGHT_MODE_STORE_NAME = 'pendingNightModeEntries';
-const DB_VERSION = 2; // Incremented from 1 to 2 to add night mode store
+const TOMORROW_STORE_NAME = 'pendingTomorrowTasks';
+const DB_VERSION = 3; // Incremented from 2 to 3 to add tomorrow tasks store
 
 let dbPromise: Promise<IDBPDatabase>;
 
@@ -24,6 +26,9 @@ async function initDB() {
         }
         if (!db.objectStoreNames.contains(NIGHT_MODE_STORE_NAME)) {
           db.createObjectStore(NIGHT_MODE_STORE_NAME, { keyPath: 'id' });
+        }
+        if (!db.objectStoreNames.contains(TOMORROW_STORE_NAME)) {
+          db.createObjectStore(TOMORROW_STORE_NAME, { keyPath: 'id' });
         }
       },
     });
@@ -323,6 +328,150 @@ export async function syncPendingNightModeEntries(userId: string, silent: boolea
       toast.success(`Se sincronizaron ${syncedCount} entradas. ${failedCount} fallaron: ${failedEntryIds.join(', ')}.`);
     } else {
       toast.error(`Fallo la sincronización de ${failedCount} entradas: ${failedEntryIds.join(', ')}.`);
+    }
+  }
+}
+
+// =====================
+// Tomorrow Box Offline Sync
+// =====================
+
+/**
+ * Saves a tomorrow task to IndexedDB when offline.
+ * @param task The tomorrow task data (without id and timestamp).
+ * @returns The ID of the saved pending task.
+ */
+export async function savePendingTomorrowTask(task: Omit<PendingTomorrowTask, 'id' | 'timestamp'>): Promise<string> {
+  const database = await initDB();
+  const id = crypto.randomUUID();
+  const timestamp = new Date();
+
+  const pendingTask: PendingTomorrowTask = {
+    id,
+    timestamp,
+    ...task,
+  };
+
+  await database.put(TOMORROW_STORE_NAME, pendingTask);
+  if (isDevelopment) console.log('Tomorrow task saved locally:', pendingTask);
+  return id;
+}
+
+/**
+ * Retrieves all pending tomorrow tasks from IndexedDB.
+ */
+export async function getPendingTomorrowTasks(): Promise<PendingTomorrowTask[]> {
+  const database = await initDB();
+  return database.getAll(TOMORROW_STORE_NAME);
+}
+
+/**
+ * Retrieves the count of pending tomorrow tasks from IndexedDB.
+ * If userId is provided, only counts tasks belonging to that user.
+ * @param userId Optional user ID to filter by. If omitted, counts all.
+ */
+export async function getPendingTomorrowTasksCount(userId?: string): Promise<number> {
+  const database = await initDB();
+  if (!userId) {
+    return database.count(TOMORROW_STORE_NAME);
+  }
+  const allTasks = await database.getAll(TOMORROW_STORE_NAME);
+  return allTasks.filter(t => t.userId === userId).length;
+}
+
+/**
+ * Removes a specific pending tomorrow task from IndexedDB after successful synchronization.
+ * @param id The ID of the pending task to remove.
+ */
+export async function clearPendingTomorrowTask(id: string): Promise<void> {
+  const database = await initDB();
+  await database.delete(TOMORROW_STORE_NAME, id);
+  if (isDevelopment) console.log(`Pending tomorrow task with ID ${id} cleared from local storage.`);
+}
+
+/**
+ * Removes all pending tomorrow tasks for a specific user from IndexedDB.
+ * @param userId The ID of the user whose pending tasks should be removed.
+ */
+export async function clearPendingTomorrowTasksForUser(userId: string): Promise<void> {
+  const database = await initDB();
+  const tx = database.transaction(TOMORROW_STORE_NAME, 'readwrite');
+  const store = tx.objectStore(TOMORROW_STORE_NAME);
+  const allTasks = await store.getAll();
+
+  const tasksToDelete = allTasks.filter(task => task.userId === userId);
+
+  for (const task of tasksToDelete) {
+    await store.delete(task.id);
+  }
+  await tx.done;
+  if (isDevelopment) console.log(`Cleared ${tasksToDelete.length} pending tomorrow tasks for user ${userId}.`);
+}
+
+/**
+ * Attempts to synchronize all pending tomorrow tasks from IndexedDB to Firestore.
+ * @param userId The ID of the current user.
+ * @param silent If true, no toast notifications are shown by this function.
+ */
+export async function syncPendingTomorrowTasks(userId: string, silent: boolean = false): Promise<void> {
+  if (!navigator.onLine) {
+    if (isDevelopment) console.log('Offline: Skipping sync of pending tomorrow tasks.');
+    return;
+  }
+
+  let pendingTasks: PendingTomorrowTask[] = [];
+  try {
+    pendingTasks = await getPendingTomorrowTasks();
+  } catch (error) {
+    console.error('Error fetching pending tomorrow tasks from IndexedDB:', error);
+    if (!silent) {
+      toast.error('Error al cargar tareas pendientes para sincronizar.');
+    }
+    return;
+  }
+
+  if (pendingTasks.length === 0) {
+    if (isDevelopment) console.log('No pending tomorrow tasks to sync.');
+    return;
+  }
+
+  if (isDevelopment) console.log(`Attempting to sync ${pendingTasks.length} pending tomorrow tasks...`);
+  let syncedCount = 0;
+  let failedCount = 0;
+  const failedTaskIds: string[] = [];
+
+  for (const task of pendingTasks) {
+    if (task.userId !== userId) {
+      if (isDevelopment) console.warn(`Skipping pending tomorrow task for different user: ${task.userId} (current user: ${userId})`);
+      continue;
+    }
+
+    try {
+      const dataToStore = {
+        userId: task.userId,
+        text: task.text,
+        completed: task.completed,
+        createdAt: serverTimestamp(),
+        completedAt: null,
+      };
+      await addDoc(collection(db, 'tomorrow_tasks'), dataToStore);
+      await clearPendingTomorrowTask(task.id);
+      syncedCount++;
+      if (isDevelopment) console.log(`Successfully synced pending tomorrow task: ${task.id}`);
+    } catch (error) {
+      console.error(`Failed to sync pending tomorrow task ${task.id}:`, error);
+      failedCount++;
+      failedTaskIds.push(task.id.substring(0, 8));
+    }
+  }
+
+  if (!silent && (syncedCount > 0 || failedCount > 0)) {
+    if (syncedCount === pendingTasks.length) {
+      toast.success(`¡Todas las ${syncedCount} tareas pendientes sincronizadas!`);
+    } else if (syncedCount > 0) {
+      toast.success(`Se sincronizaron ${syncedCount} tareas. ${failedCount} fallaron: ${failedTaskIds.join(', ')}.`);
+    } else {
+      toast.error(`Fallo la sincronización de ${failedCount} tareas: ${failedTaskIds.join(', ')}.`);
     }
   }
 }

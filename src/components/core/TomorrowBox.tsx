@@ -1,10 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { getTomorrowTasks, saveTomorrowTask, updateTomorrowTask, deleteTomorrowTask } from '../../services/db';
+import { savePendingTomorrowTask, syncPendingTomorrowTasks } from '../../services/offlineSync';
 import { TomorrowTask } from '../../types/tomorrowBox';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Plus, Check, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
+
+const isDevelopment = import.meta.env.DEV;
 
 const TomorrowBox = () => {
   const { user } = useAuth();
@@ -36,7 +39,32 @@ const TomorrowBox = () => {
       setTasks(updatedTasks);
       toast.success('Tarea guardada para mañana.');
     } catch (error) {
-      toast.error('Error al guardar la tarea.');
+      console.error("Error saving tomorrow task to Firestore, attempting offline save: ", error);
+      try {
+        await savePendingTomorrowTask({
+          userId: user.uid,
+          text: newTask,
+          completed: false,
+        });
+        setNewTask('');
+        toast.success('Tarea guardada localmente. Se sincronizará cuando haya conexión.');
+
+        if ('serviceWorker' in navigator && 'SyncManager' in window) {
+          navigator.serviceWorker.ready.then(registration => {
+            registration.sync.register('sync-tomorrow-tasks')
+              .then(() => { if (isDevelopment) console.log('Background sync registered: sync-tomorrow-tasks'); })
+              .catch(err => console.error('Failed to register background sync:', err));
+          });
+        } else {
+          if (isDevelopment) console.warn('Background Sync API not supported or service worker not ready.');
+        }
+
+        // Attempt immediate sync silently
+        await syncPendingTomorrowTasks(user.uid, true);
+      } catch (offlineError) {
+        console.error('Error saving tomorrow task offline:', offlineError);
+        toast.error('Error al guardar la tarea.');
+      }
     }
   };
 
