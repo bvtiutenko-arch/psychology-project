@@ -3,9 +3,46 @@ import { useAuth } from '../../hooks/useAuth';
 import { getCausalMatrices } from '../../services/db';
 import { CausalMatrix } from '../../types/causal';
 import { useEffect, useState, ReactNode } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Plus, Moon, Activity, Heart, Brain, TrendingDown, Sparkles, Calendar, BarChart, Settings, Network, History } from 'lucide-react';
 import { Timestamp } from 'firebase/firestore';
+
+const MetricCard = ({ title, value, change, invertColor }: { title: string; value?: number; change?: number | null; invertColor?: boolean }) => {
+  if (value === undefined) {
+    return (
+      <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
+        <h3 className="text-sm text-slate-500 mb-1">{title}</h3>
+        <p className="text-2xl font-bold text-slate-300">--</p>
+      </div>
+    );
+  }
+  const isPositive = invertColor ? change! < 0 : change! > 0;
+  const changeColor = change === null || change === 0 ? 'text-slate-400' : isPositive ? 'text-green-500' : 'text-red-500';
+  
+  return (
+    <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
+      <h3 className="text-sm text-slate-500 mb-1">{title}</h3>
+      <div className="flex items-baseline gap-2">
+        <p className="text-2xl font-bold text-slate-800">{value}%</p>
+        {change !== null && change !== 0 && (
+          <span className={`text-xs font-medium ${changeColor}`}>
+            {change! > 0 ? '↑' : '↓'} {Math.abs(change!)}
+          </span>
+        )}
+      </div>
+    </div>
+  );
+};
+
+const NavCard = ({ icon, title, path, color }: { icon: ReactNode; title: string; path: string; color: string }) => (
+  <Link 
+    to={path}
+    className={`${color} text-white p-4 rounded-xl shadow-sm hover:opacity-90 transition-opacity flex flex-col items-center justify-center gap-2`}
+  >
+    {icon}
+    <span className="font-medium text-sm">{title}</span>
+  </Link>
+);
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -57,43 +94,6 @@ const Dashboard = () => {
   };
 
   const latestDateLabel = latestMatrix ? (isToday(latestMatrix.timestamp) ? 'Hoy' : 'Último registro') : 'Hoy';
-
-  const MetricCard = ({ title, value, change, invertColor }: { title: string; value?: number; change?: number | null; invertColor?: boolean }) => {
-    if (value === undefined) {
-      return (
-        <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
-          <h3 className="text-sm text-slate-500 mb-1">{title}</h3>
-          <p className="text-2xl font-bold text-slate-300">--</p>
-        </div>
-      );
-    }
-    const isPositive = invertColor ? change! < 0 : change! > 0;
-    const changeColor = change === null || change === 0 ? 'text-slate-400' : isPositive ? 'text-green-500' : 'text-red-500';
-    
-    return (
-      <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
-        <h3 className="text-sm text-slate-500 mb-1">{title}</h3>
-        <div className="flex items-baseline gap-2">
-          <p className="text-2xl font-bold text-slate-800">{value}%</p>
-          {change !== null && change !== 0 && (
-            <span className={`text-xs font-medium ${changeColor}`}>
-              {change! > 0 ? '↑' : '↓'} {Math.abs(change!)}
-            </span>
-          )}
-        </div>
-      </div>
-    );
-  };
-
-  const NavCard = ({ icon, title, path, color }: { icon: ReactNode; title: string; path: string; color: string }) => (
-    <button 
-      onClick={() => navigate(path)}
-      className={`${color} text-white p-4 rounded-xl shadow-sm hover:opacity-90 transition-opacity flex flex-col items-center justify-center gap-2`}
-    >
-      {icon}
-      <span className="font-medium text-sm">{title}</span>
-    </button>
-  );
 
   return (
     <div className="min-h-screen bg-slate-50 p-4 sm:p-8 max-w-4xl mx-auto">

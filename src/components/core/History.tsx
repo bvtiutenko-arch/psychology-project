@@ -5,15 +5,7 @@ import { CausalMatrix } from '../../types/causal';
 import { NightModeEntry } from '../../types/nightMode';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Brain, Moon } from 'lucide-react';
-import { Timestamp } from 'firebase/firestore';
-
-const formatDate = (timestamp: any): string => {
-  if (!timestamp) return 'Fecha no disponible';
-  if (timestamp instanceof Date) return timestamp.toLocaleString('es-PE');
-  if (timestamp instanceof Timestamp) return timestamp.toDate().toLocaleString('es-PE');
-  if (typeof timestamp === 'object' && timestamp.seconds) return new Date(timestamp.seconds * 1000).toLocaleString('es-PE');
-  return 'Fecha no disponible';
-};
+import { formatDate } from '../../utils/date';
 
 const History = () => {
   const { user } = useAuth();
@@ -62,7 +54,7 @@ const History = () => {
               <div className="space-y-4">
                 {matrices.map((matrix) => (
                   <div key={matrix.id} className="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
-                    <p className="text-xs text-slate-500 mb-2">{formatDate(matrix.timestamp)}</p>
+                    <p className="text-xs text-slate-500 mb-2">{formatDate(matrix.timestamp, true)}</p>
                     <div className="grid grid-cols-2 gap-2 text-sm">
                       <div><span className="font-medium text-slate-700">Herida:</span> {matrix.rootWound}</div>
                       <div><span className="font-medium text-slate-700">Disparador:</span> {matrix.triggerEvent}</div>
@@ -87,7 +79,7 @@ const History = () => {
               <div className="space-y-4">
                 {nightEntries.map((entry) => (
                   <div key={entry.id} className="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
-                    <p className="text-xs text-slate-500 mb-2">{formatDate(entry.timestamp)}</p>
+                    <p className="text-xs text-slate-500 mb-2">{formatDate(entry.timestamp, true)}</p>
                     <p className="text-sm text-slate-800 mb-2"><span className="font-medium">Pensamiento:</span> {entry.thought}</p>
                     {entry.needsActionNow ? (
                       <p className="text-sm text-red-500">Marcado como urgente.</p>
