@@ -8,3 +8,12 @@ export interface NightModeEntry {
   actionForTomorrow?: string;
   timestamp: Date | Timestamp | FieldValue;
 }
+
+export interface PendingNightModeEntry {
+  id: string;
+  userId: string;
+  thought: string;
+  needsActionNow: boolean;
+  actionForTomorrow?: string;
+  timestamp: Date;
+}

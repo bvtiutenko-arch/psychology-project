@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { saveNightModeEntry } from '../../services/db';
+import { savePendingNightModeEntry, syncPendingNightModeEntries } from '../../services/offlineSync';
 import { serverTimestamp } from 'firebase/firestore';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import { Moon, ArrowLeft, Check } from 'lucide-react';
+
+const isDevelopment = import.meta.env.DEV;
 
 const NightMode = () => {
   const { user } = useAuth();
@@ -41,8 +44,33 @@ const NightMode = () => {
       toast.success('Pensamiento guardado. Intenta relajarte ahora.');
       navigate('/dashboard');
     } catch (error) {
-      console.error(error);
-      toast.error('Error al guardar el pensamiento.');
+      console.error("Error saving night mode entry to Firestore, attempting offline save: ", error);
+      try {
+        await savePendingNightModeEntry({
+          userId: user.uid,
+          thought,
+          needsActionNow,
+          actionForTomorrow: needsActionNow ? '' : actionForTomorrow,
+        });
+        toast.success('Pensamiento guardado localmente. Se sincronizará cuando haya conexión.');
+        navigate('/dashboard');
+
+        if ('serviceWorker' in navigator && 'SyncManager' in window) {
+          navigator.serviceWorker.ready.then(registration => {
+            registration.sync.register('sync-night-mode-entries')
+              .then(() => { if (isDevelopment) console.log('Background sync registered: sync-night-mode-entries'); })
+              .catch(err => console.error('Failed to register background sync:', err));
+          });
+        } else {
+          if (isDevelopment) console.warn('Background Sync API not supported or service worker not ready.');
+        }
+
+        // Attempt immediate sync silently
+        await syncPendingNightModeEntries(user.uid, true);
+      } catch (offlineError) {
+        console.error('Error saving night mode entry offline:', offlineError);
+        toast.error('Error al guardar el pensamiento.');
+      }
     } finally {
       setIsSubmitting(false);
     }

@@ -1,5 +1,6 @@
 import { openDB, IDBPDatabase } from 'idb';
 import { CausalInputs, PendingCausalMatrix, CausalMatrixData } from '../types/causal';
+import { PendingNightModeEntry } from '../types/nightMode';
 import { db } from '../firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import toast from 'react-hot-toast';
@@ -8,8 +9,9 @@ import { calculateCausalMatrixMetrics } from './causalEngine';
 const isDevelopment = import.meta.env.DEV; // Determine if in development environment
 
 const DB_NAME = 'menteEnCalmaDB';
-const STORE_NAME = 'pendingCausalMatrices';
-const DB_VERSION = 1;
+const CAUSAL_STORE_NAME = 'pendingCausalMatrices';
+const NIGHT_MODE_STORE_NAME = 'pendingNightModeEntries';
+const DB_VERSION = 2; // Incremented from 1 to 2 to add night mode store
 
 let dbPromise: Promise<IDBPDatabase>;
 
@@ -17,8 +19,11 @@ async function initDB() {
   if (!dbPromise) {
     dbPromise = openDB(DB_NAME, DB_VERSION, {
       upgrade(db) {
-        if (!db.objectStoreNames.contains(STORE_NAME)) {
-          db.createObjectStore(STORE_NAME, { keyPath: 'id' });
+        if (!db.objectStoreNames.contains(CAUSAL_STORE_NAME)) {
+          db.createObjectStore(CAUSAL_STORE_NAME, { keyPath: 'id' });
+        }
+        if (!db.objectStoreNames.contains(NIGHT_MODE_STORE_NAME)) {
+          db.createObjectStore(NIGHT_MODE_STORE_NAME, { keyPath: 'id' });
         }
       },
     });
@@ -48,7 +53,7 @@ export async function savePendingCausalMatrix(inputs: CausalInputs, userId: stri
     interventionStrategies,
   };
 
-  await database.put(STORE_NAME, pendingMatrix);
+  await database.put(CAUSAL_STORE_NAME, pendingMatrix);
   if (isDevelopment) console.log('Causal matrix saved locally:', pendingMatrix);
   return id;
 }
@@ -58,7 +63,7 @@ export async function savePendingCausalMatrix(inputs: CausalInputs, userId: stri
  */
 export async function getPendingCausalMatrices(): Promise<PendingCausalMatrix[]> {
   const database = await initDB();
-  return database.getAll(STORE_NAME);
+  return database.getAll(CAUSAL_STORE_NAME);
 }
 
 /**
@@ -69,9 +74,9 @@ export async function getPendingCausalMatrices(): Promise<PendingCausalMatrix[]>
 export async function getPendingCausalMatricesCount(userId?: string): Promise<number> {
   const database = await initDB();
   if (!userId) {
-    return database.count(STORE_NAME);
+    return database.count(CAUSAL_STORE_NAME);
   }
-  const allMatrices = await database.getAll(STORE_NAME);
+  const allMatrices = await database.getAll(CAUSAL_STORE_NAME);
   return allMatrices.filter(m => m.userId === userId).length;
 }
 
@@ -81,7 +86,7 @@ export async function getPendingCausalMatricesCount(userId?: string): Promise<nu
  */
 export async function clearPendingCausalMatrix(id: string): Promise<void> {
   const database = await initDB();
-  await database.delete(STORE_NAME, id);
+  await database.delete(CAUSAL_STORE_NAME, id);
   if (isDevelopment) console.log(`Pending causal matrix with ID ${id} cleared from local storage.`);
 }
 
@@ -92,8 +97,8 @@ export async function clearPendingCausalMatrix(id: string): Promise<void> {
  */
 export async function clearPendingCausalMatricesForUser(userId: string): Promise<void> {
   const database = await initDB();
-  const tx = database.transaction(STORE_NAME, 'readwrite');
-  const store = tx.objectStore(STORE_NAME);
+  const tx = database.transaction(CAUSAL_STORE_NAME, 'readwrite');
+  const store = tx.objectStore(CAUSAL_STORE_NAME);
   const allMatrices = await store.getAll();
 
   const matricesToDelete = allMatrices.filter(matrix => matrix.userId === userId);
@@ -174,6 +179,150 @@ export async function syncPendingCausalMatrices(userId: string, silent: boolean 
       toast.success(`Se sincronizaron ${syncedCount} matrices. ${failedCount} fallaron: ${failedMatrixIds.join(', ')}.`);
     } else {
       toast.error(`Fallo la sincronización de ${failedCount} matrices: ${failedMatrixIds.join(', ')}.`);
+    }
+  }
+}
+
+// =====================
+// Night Mode Offline Sync
+// =====================
+
+/**
+ * Saves a night mode entry to IndexedDB when offline.
+ * @param entry The night mode entry data (without id and timestamp).
+ * @returns The ID of the saved pending entry.
+ */
+export async function savePendingNightModeEntry(entry: Omit<PendingNightModeEntry, 'id' | 'timestamp'>): Promise<string> {
+  const database = await initDB();
+  const id = crypto.randomUUID();
+  const timestamp = new Date();
+
+  const pendingEntry: PendingNightModeEntry = {
+    id,
+    timestamp,
+    ...entry,
+  };
+
+  await database.put(NIGHT_MODE_STORE_NAME, pendingEntry);
+  if (isDevelopment) console.log('Night mode entry saved locally:', pendingEntry);
+  return id;
+}
+
+/**
+ * Retrieves all pending night mode entries from IndexedDB.
+ */
+export async function getPendingNightModeEntries(): Promise<PendingNightModeEntry[]> {
+  const database = await initDB();
+  return database.getAll(NIGHT_MODE_STORE_NAME);
+}
+
+/**
+ * Retrieves the count of pending night mode entries from IndexedDB.
+ * If userId is provided, only counts entries belonging to that user.
+ * @param userId Optional user ID to filter by. If omitted, counts all.
+ */
+export async function getPendingNightModeEntriesCount(userId?: string): Promise<number> {
+  const database = await initDB();
+  if (!userId) {
+    return database.count(NIGHT_MODE_STORE_NAME);
+  }
+  const allEntries = await database.getAll(NIGHT_MODE_STORE_NAME);
+  return allEntries.filter(e => e.userId === userId).length;
+}
+
+/**
+ * Removes a specific pending night mode entry from IndexedDB after successful synchronization.
+ * @param id The ID of the pending entry to remove.
+ */
+export async function clearPendingNightModeEntry(id: string): Promise<void> {
+  const database = await initDB();
+  await database.delete(NIGHT_MODE_STORE_NAME, id);
+  if (isDevelopment) console.log(`Pending night mode entry with ID ${id} cleared from local storage.`);
+}
+
+/**
+ * Removes all pending night mode entries for a specific user from IndexedDB.
+ * @param userId The ID of the user whose pending entries should be removed.
+ */
+export async function clearPendingNightModeEntriesForUser(userId: string): Promise<void> {
+  const database = await initDB();
+  const tx = database.transaction(NIGHT_MODE_STORE_NAME, 'readwrite');
+  const store = tx.objectStore(NIGHT_MODE_STORE_NAME);
+  const allEntries = await store.getAll();
+
+  const entriesToDelete = allEntries.filter(entry => entry.userId === userId);
+
+  for (const entry of entriesToDelete) {
+    await store.delete(entry.id);
+  }
+  await tx.done;
+  if (isDevelopment) console.log(`Cleared ${entriesToDelete.length} pending night mode entries for user ${userId}.`);
+}
+
+/**
+ * Attempts to synchronize all pending night mode entries from IndexedDB to Firestore.
+ * @param userId The ID of the current user.
+ * @param silent If true, no toast notifications are shown by this function.
+ */
+export async function syncPendingNightModeEntries(userId: string, silent: boolean = false): Promise<void> {
+  if (!navigator.onLine) {
+    if (isDevelopment) console.log('Offline: Skipping sync of pending night mode entries.');
+    return;
+  }
+
+  let pendingEntries: PendingNightModeEntry[] = [];
+  try {
+    pendingEntries = await getPendingNightModeEntries();
+  } catch (error) {
+    console.error('Error fetching pending night mode entries from IndexedDB:', error);
+    if (!silent) {
+      toast.error('Error al cargar entradas de modo noche pendientes para sincronizar.');
+    }
+    return;
+  }
+
+  if (pendingEntries.length === 0) {
+    if (isDevelopment) console.log('No pending night mode entries to sync.');
+    return;
+  }
+
+  if (isDevelopment) console.log(`Attempting to sync ${pendingEntries.length} pending night mode entries...`);
+  let syncedCount = 0;
+  let failedCount = 0;
+  const failedEntryIds: string[] = [];
+
+  for (const entry of pendingEntries) {
+    if (entry.userId !== userId) {
+      if (isDevelopment) console.warn(`Skipping pending night mode entry for different user: ${entry.userId} (current user: ${userId})`);
+      continue;
+    }
+
+    try {
+      const dataToStore = {
+        userId: entry.userId,
+        thought: entry.thought,
+        needsActionNow: entry.needsActionNow,
+        actionForTomorrow: entry.actionForTomorrow || '',
+        timestamp: serverTimestamp(),
+      };
+      await addDoc(collection(db, 'night_mode_entries'), dataToStore);
+      await clearPendingNightModeEntry(entry.id);
+      syncedCount++;
+      if (isDevelopment) console.log(`Successfully synced pending night mode entry: ${entry.id}`);
+    } catch (error) {
+      console.error(`Failed to sync pending night mode entry ${entry.id}:`, error);
+      failedCount++;
+      failedEntryIds.push(entry.id.substring(0, 8));
+    }
+  }
+
+  if (!silent && (syncedCount > 0 || failedCount > 0)) {
+    if (syncedCount === pendingEntries.length) {
+      toast.success(`¡Todas las ${syncedCount} entradas de modo noche sincronizadas!`);
+    } else if (syncedCount > 0) {
+      toast.success(`Se sincronizaron ${syncedCount} entradas. ${failedCount} fallaron: ${failedEntryIds.join(', ')}.`);
+    } else {
+      toast.error(`Fallo la sincronización de ${failedCount} entradas: ${failedEntryIds.join(', ')}.`);
     }
   }
 }

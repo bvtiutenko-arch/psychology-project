@@ -15,7 +15,14 @@ import History from './components/core/History';
 import Landing from './components/public/Landing';
 import { Privacy, Terms, Contact, FAQ, CookiePolicy, LegalNotice } from './components/public/LegalPages';
 import { useEffect, useState, useRef, useCallback } from 'react';
-import { syncPendingCausalMatrices, getPendingCausalMatricesCount, clearPendingCausalMatricesForUser } from './services/offlineSync';
+import {
+  syncPendingCausalMatrices,
+  getPendingCausalMatricesCount,
+  clearPendingCausalMatricesForUser,
+  syncPendingNightModeEntries,
+  getPendingNightModeEntriesCount,
+  clearPendingNightModeEntriesForUser,
+} from './services/offlineSync';
 import { saveSessionHistory } from './services/db';
 import toast from 'react-hot-toast';
 import { RotateCw, Download } from 'lucide-react';
@@ -29,16 +36,17 @@ function App() {
   const prevUserIdRef = useRef<string | null>(null);
 
   const [isOnline, setIsOnline] = useState(navigator.onLine);
-  const [pendingMatricesCount, setPendingMatricesCount] = useState(0);
+  const [pendingItemsCount, setPendingItemsCount] = useState(0);
   const [deferredPrompt, setDeferredPrompt] = useState<Event | null>(null);
   const [isAppInstalled, setIsAppInstalled] = useState(false);
 
   const refreshPendingCount = useCallback(async () => {
     if (user) {
-      const count = await getPendingCausalMatricesCount(user.uid);
-      setPendingMatricesCount(count);
+      const matrixCount = await getPendingCausalMatricesCount(user.uid);
+      const nightModeCount = await getPendingNightModeEntriesCount(user.uid);
+      setPendingItemsCount(matrixCount + nightModeCount);
     } else {
-      setPendingMatricesCount(0);
+      setPendingItemsCount(0);
     }
   }, [user]);
 
@@ -90,8 +98,9 @@ function App() {
       const currentOnlineStatus = navigator.onLine;
       setIsOnline(currentOnlineStatus);
       if (currentOnlineStatus && user) {
-        if (isDevelopment) console.log('App is online, attempting to sync pending matrices...');
+        if (isDevelopment) console.log('App is online, attempting to sync pending items...');
         await syncPendingCausalMatrices(user.uid);
+        await syncPendingNightModeEntries(user.uid);
         await refreshPendingCount();
       } else {
         await refreshPendingCount();
@@ -110,19 +119,41 @@ function App() {
             const toastId = toast.loading('Sincronizando matrices pendientes en segundo plano...');
             await syncPendingCausalMatrices(user.uid, true);
             const newPendingCount = await getPendingCausalMatricesCount(user.uid);
-            setPendingMatricesCount(newPendingCount);
             toast.dismiss(toastId);
             if (newPendingCount === 0) {
               toast.success('Sincronización de matrices pendientes completada.');
             } else {
               toast.error(`Sincronización parcial. Quedan ${newPendingCount} pendientes.`);
             }
+            await refreshPendingCount();
           } catch (error) {
             console.error('Error during background sync:', error);
             toast.error('Error durante la sincronización en segundo plano.');
           }
         } else {
           if (isDevelopment) console.warn('App.tsx: Cannot sync pending matrices: User not authenticated.');
+        }
+      }
+      if (event.data && event.data.type === 'SYNC_PENDING_NIGHT_MODE_ENTRIES') {
+        if (isDevelopment) console.log('App.tsx: Received SYNC_PENDING_NIGHT_MODE_ENTRIES message from Service Worker.');
+        if (user) {
+          try {
+            const toastId = toast.loading('Sincronizando entradas de modo noche en segundo plano...');
+            await syncPendingNightModeEntries(user.uid, true);
+            const newPendingCount = await getPendingNightModeEntriesCount(user.uid);
+            toast.dismiss(toastId);
+            if (newPendingCount === 0) {
+              toast.success('Sincronización de entradas de modo noche completada.');
+            } else {
+              toast.error(`Sincronización parcial. Quedan ${newPendingCount} pendientes.`);
+            }
+            await refreshPendingCount();
+          } catch (error) {
+            console.error('Error during background sync:', error);
+            toast.error('Error durante la sincronización en segundo plano.');
+          }
+        } else {
+          if (isDevelopment) console.warn('App.tsx: Cannot sync pending night mode entries: User not authenticated.');
         }
       }
     };
@@ -144,16 +175,17 @@ function App() {
         prevUserIdRef.current = user.uid;
       } else {
         if (prevUserIdRef.current) {
-          if (isDevelopment) console.log(`User ${prevUserIdRef.current} logged out. Clearing their pending matrices.`);
+          if (isDevelopment) console.log(`User ${prevUserIdRef.current} logged out. Clearing their pending items.`);
           clearPendingCausalMatricesForUser(prevUserIdRef.current)
+            .then(() => clearPendingNightModeEntriesForUser(prevUserIdRef.current!))
             .then(() => {
-              toast.success('Matrices pendientes del usuario anterior limpiadas.');
+              toast.success('Datos pendientes del usuario anterior limpiados.');
               prevUserIdRef.current = null;
               refreshPendingCount();
             })
             .catch(error => {
-              console.error('Error clearing pending matrices for previous user:', error);
-              toast.error('Error al limpiar matrices pendientes del usuario anterior.');
+              console.error('Error clearing pending items for previous user:', error);
+              toast.error('Error al limpiar datos pendientes del usuario anterior.');
             });
         }
       }
@@ -188,6 +220,7 @@ function App() {
 
       if (isOnline) {
         syncPendingCausalMatrices(user.uid).then(() => refreshPendingCount());
+        syncPendingNightModeEntries(user.uid).then(() => refreshPendingCount());
       }
       refreshPendingCount();
     }
@@ -198,27 +231,30 @@ function App() {
       if (navigator.vibrate) {
         navigator.vibrate(50);
       }
-      const toastId = toast.loading('Intentando sincronizar matrices pendientes...');
+      const toastId = toast.loading('Intentando sincronizar datos pendientes...');
       try {
         await syncPendingCausalMatrices(user.uid, true);
-        const newPendingCount = await getPendingCausalMatricesCount(user.uid);
-        setPendingMatricesCount(newPendingCount);
+        await syncPendingNightModeEntries(user.uid, true);
+        const matrixCount = await getPendingCausalMatricesCount(user.uid);
+        const nightModeCount = await getPendingNightModeEntriesCount(user.uid);
+        const totalPending = matrixCount + nightModeCount;
+        setPendingItemsCount(totalPending);
         toast.dismiss(toastId);
 
-        if (newPendingCount === 0) {
-          toast.success('Todas las matrices pendientes han sido sincronizadas.');
+        if (totalPending === 0) {
+          toast.success('Todos los datos pendientes han sido sincronizados.');
           await saveSessionHistory({
             userId: user.uid,
             sessionType: 'manual_sync',
-            responses: { success: true, remaining: newPendingCount }
+            responses: { success: true, remaining: totalPending }
           }).catch((e) => console.error('Error saving sync session history:', e));
         } else {
-          toast.error(`Se sincronizaron algunas matrices. Quedan ${newPendingCount} pendientes.`);
+          toast.error(`Se sincronizaron algunos datos. Quedan ${totalPending} pendientes.`);
         }
       } catch (error) {
         console.error('Error during manual sync:', error);
         toast.dismiss(toastId);
-        toast.error('Error al sincronizar matrices pendientes.');
+        toast.error('Error al sincronizar datos pendientes.');
       }
     } else if (!isOnline) {
       toast.error('Estás desconectado. Conéctate para sincronizar.');
@@ -262,19 +298,19 @@ function App() {
       />
       <div className={`flex-shrink-0 p-1 text-center text-xs font-medium z-50 flex items-center justify-center gap-2 flex-nowrap overflow-x-auto
                   ${isOnline ? 'bg-green-500 text-white' : 'bg-red-500 text-white'}`}>
-        <span>{isOnline ? 'Online' : 'Offline'}</span>
+        <span>{isOnline ? 'En línea' : 'Sin conexión'}</span>
         {isAppInstalled && (
           <span className="ml-2 px-2 py-0.5 rounded-full bg-blue-500 text-white text-xs font-bold">
             App Instalada
           </span>
         )}
-        {pendingMatricesCount > 0 && (
+        {pendingItemsCount > 0 && (
           <button
             onClick={handleManualSync}
             className="ml-2 px-2 py-0.5 rounded-full bg-white text-red-600 text-xs font-bold flex items-center"
-            title="Sincronizar matrices pendientes"
+            title="Sincronizar datos pendientes"
           >
-            {pendingMatricesCount} Pendiente{pendingMatricesCount > 1 ? 's' : ''}
+            {pendingItemsCount} Pendiente{pendingItemsCount > 1 ? 's' : ''}
             <RotateCw className="w-3 h-3 ml-1" />
           </button>
         )}

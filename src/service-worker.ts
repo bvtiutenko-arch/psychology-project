@@ -29,6 +29,15 @@ self.addEventListener('sync', (event) => {
       })
     );
   }
+  if (event.tag === 'sync-night-mode-entries') {
+    event.waitUntil(
+      (self as any).clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients: any[]) => {
+        clients.forEach((client) => {
+          client.postMessage({ type: 'SYNC_PENDING_NIGHT_MODE_ENTRIES' });
+        });
+      })
+    );
+  }
 });
 
 // Handle skip waiting for PWA updates
