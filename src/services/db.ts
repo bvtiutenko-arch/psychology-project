@@ -9,7 +9,6 @@ import {
   where, 
   serverTimestamp,
   Timestamp,
-  orderBy,
   deleteDoc,
   writeBatch
 } from 'firebase/firestore';
@@ -104,13 +103,26 @@ export async function saveCausalMatrix(data: CausalMatrixData): Promise<string> 
 
 /**
  * Retrieves all causal matrices for a specific user, ordered by timestamp descending.
+ * Sorting is done client-side to avoid requiring composite indexes in Firestore.
  * @param userId The ID of the user.
  * @returns An array of CausalMatrix objects.
  */
 export async function getCausalMatrices(userId: string): Promise<CausalMatrix[]> {
-  const q = query(collection(db, 'causal_matrices'), where('userId', '==', userId), orderBy('timestamp', 'desc'));
+  const q = query(collection(db, 'causal_matrices'), where('userId', '==', userId));
   const querySnapshot = await getDocs(q);
-  return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as CausalMatrix));
+  const matrices = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as CausalMatrix));
+  
+  matrices.sort((a, b) => {
+    const getTime = (timestamp: any) => {
+      if (timestamp instanceof Timestamp) return timestamp.toMillis();
+      if (timestamp instanceof Date) return timestamp.getTime();
+      if (timestamp && typeof timestamp.seconds === 'number') return timestamp.seconds * 1000;
+      return 0;
+    };
+    return getTime(b.timestamp) - getTime(a.timestamp);
+  });
+  
+  return matrices;
 }
 
 /**
@@ -125,13 +137,26 @@ export async function saveNightModeEntry(entry: Omit<NightModeEntry, 'id'>): Pro
 
 /**
  * Retrieves all night mode entries for a specific user, ordered by timestamp descending.
+ * Sorting is done client-side to avoid requiring composite indexes in Firestore.
  * @param userId The ID of the user.
  * @returns An array of NightModeEntry objects.
  */
 export async function getNightModeEntries(userId: string): Promise<NightModeEntry[]> {
-  const q = query(collection(db, 'night_mode_entries'), where('userId', '==', userId), orderBy('timestamp', 'desc'));
+  const q = query(collection(db, 'night_mode_entries'), where('userId', '==', userId));
   const querySnapshot = await getDocs(q);
-  return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as NightModeEntry));
+  const entries = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as NightModeEntry));
+  
+  entries.sort((a, b) => {
+    const getTime = (timestamp: any) => {
+      if (timestamp instanceof Timestamp) return timestamp.toMillis();
+      if (timestamp instanceof Date) return timestamp.getTime();
+      if (timestamp && typeof timestamp.seconds === 'number') return timestamp.seconds * 1000;
+      return 0;
+    };
+    return getTime(b.timestamp) - getTime(a.timestamp);
+  });
+  
+  return entries;
 }
 
 // --- Tomorrow Box ---
@@ -145,10 +170,28 @@ export async function saveTomorrowTask(task: Omit<TomorrowTask, 'id' | 'createdA
   return docRef.id;
 }
 
+/**
+ * Retrieves all tomorrow tasks for a specific user, ordered by createdAt descending.
+ * Sorting is done client-side to avoid requiring composite indexes in Firestore.
+ * @param userId The ID of the user.
+ * @returns An array of TomorrowTask objects.
+ */
 export async function getTomorrowTasks(userId: string): Promise<TomorrowTask[]> {
-  const q = query(collection(db, 'tomorrow_tasks'), where('userId', '==', userId), orderBy('createdAt', 'desc'));
+  const q = query(collection(db, 'tomorrow_tasks'), where('userId', '==', userId));
   const querySnapshot = await getDocs(q);
-  return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as TomorrowTask));
+  const tasks = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as TomorrowTask));
+  
+  tasks.sort((a, b) => {
+    const getTime = (timestamp: any) => {
+      if (timestamp instanceof Timestamp) return timestamp.toMillis();
+      if (timestamp instanceof Date) return timestamp.getTime();
+      if (timestamp && typeof timestamp.seconds === 'number') return timestamp.seconds * 1000;
+      return 0;
+    };
+    return getTime(b.createdAt) - getTime(a.createdAt);
+  });
+  
+  return tasks;
 }
 
 export async function updateTomorrowTask(taskId: string, updates: Partial<TomorrowTask>): Promise<void> {

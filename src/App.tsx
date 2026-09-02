@@ -219,7 +219,7 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-800 font-sans">
+    <div className="min-h-screen bg-gray-50 text-gray-800 font-sans pt-8">
       <Toaster position="top-center" reverseOrder={false} />
       <div className={`fixed top-0 left-0 right-0 p-1 text-center text-xs font-medium z-50 flex items-center justify-center gap-2
                   ${isOnline ? 'bg-green-500 text-white' : 'bg-red-500 text-white'}`}>
