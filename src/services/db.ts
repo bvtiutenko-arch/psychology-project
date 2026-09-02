@@ -10,7 +10,9 @@ import {
   serverTimestamp,
   Timestamp,
   deleteDoc,
-  writeBatch
+  writeBatch,
+  startAfter,
+  limit
 } from 'firebase/firestore';
 import { CausalMatrixData, CausalMatrix } from '../types/causal';
 import { NightModeEntry } from '../types/nightMode';
@@ -274,14 +276,29 @@ export async function deleteAllUserData(userId: string): Promise<void> {
   const collectionsToDelete = ['causal_matrices', 'night_mode_entries', 'tomorrow_tasks', 'testResults', 'sessionHistory', 'experiments'];
   
   for (const colName of collectionsToDelete) {
-    const q = query(collection(db, colName), where('userId', '==', userId));
-    const snapshot = await getDocs(q);
-    const batch = writeBatch(db);
-    snapshot.docs.forEach((doc) => {
-      batch.delete(doc.ref);
-    });
-    await batch.commit();
+    let lastDoc: any = null;
+    while (true) {
+      let q;
+      if (lastDoc) {
+        q = query(collection(db, colName), where('userId', '==', userId), startAfter(lastDoc), limit(400));
+      } else {
+        q = query(collection(db, colName), where('userId', '==', userId), limit(400));
+      }
+      const snapshot = await getDocs(q);
+      if (snapshot.empty) break;
+      
+      const batch = writeBatch(db);
+      snapshot.docs.forEach((doc) => {
+        batch.delete(doc.ref);
+      });
+      await batch.commit();
+      
+      lastDoc = snapshot.docs[snapshot.docs.length - 1];
+    }
   }
+  
+  // Delete the user document itself to complete the reset
+  await deleteDoc(doc(db, 'users', userId));
 }
 
 export async function exportUserData(userId: string): Promise<Record<string, any>> {
