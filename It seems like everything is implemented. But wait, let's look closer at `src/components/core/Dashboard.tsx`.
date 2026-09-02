@@ -1,0 +1,13 @@
+  const latestMatrix = matrices[0];
+  const previousMatrix = matrices[1];
+
+  // Calculate changes
+  const getChange = (current?: number, previous?: number) => {
+    if (current === undefined || previous === undefined) return null;
+    return current - previous;
+  };
+
+  const clarityChange = getChange(latestMatrix?.clarityIndex, previousMatrix?.clarityIndex);
+  const loopChange = getChange(latestMatrix?.loopIntensity, previousMatrix?.loopIntensity);
+  const frictionChange = getChange(latestMatrix?.coupleFriction, previousMatrix?.coupleFriction);
+  const sleepChange = getChange(latestMatrix?.sleepLatencyRisk, previousMatrix?.sleepLatencyRisk);

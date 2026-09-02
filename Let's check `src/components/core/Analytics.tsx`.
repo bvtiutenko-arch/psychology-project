@@ -1,0 +1,8 @@
+const getAverage = (matrices: CausalMatrix[], key: keyof CausalMatrix): number => {
+  if (matrices.length === 0) return 0;
+  const sum = matrices.reduce((acc, m) => {
+    const val = m[key];
+    return acc + (typeof val === 'number' ? val : 0);
+  }, 0);
+  return Math.round(sum / matrices.length);
+};
