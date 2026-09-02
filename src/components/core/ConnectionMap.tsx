@@ -4,6 +4,7 @@ import { getCausalMatrices } from '../../services/db';
 import { CausalMatrix } from '../../types/causal';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
+import { formatDate } from '../../utils/date';
 
 const Node = ({ label, value, color, isLast }: { label: string; value: string; color: string; isLast: boolean }) => (
   <div className="flex flex-col items-center mb-8 relative">
@@ -18,15 +19,23 @@ const Node = ({ label, value, color, isLast }: { label: string; value: string; c
 const ConnectionMap = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [matrix, setMatrix] = useState<CausalMatrix | null>(null);
+  const [matrices, setMatrices] = useState<CausalMatrix[]>([]);
+  const [selectedMatrixId, setSelectedMatrixId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (user) {
       getCausalMatrices(user.uid).then(data => {
-        if (data.length > 0) setMatrix(data[0]); // Get latest
+        setMatrices(data);
+        if (data.length > 0) {
+          setSelectedMatrixId(data[0].id || null);
+        }
+        setLoading(false);
       });
     }
   }, [user]);
+
+  const selectedMatrix = matrices.find(m => m.id === selectedMatrixId);
 
   return (
     <div className="min-h-screen bg-slate-50 p-6 max-w-md mx-auto">
@@ -37,17 +46,37 @@ const ConnectionMap = () => {
         <h1 className="text-xl font-bold ml-2 text-slate-800">Mapa de Conexión</h1>
       </header>
 
-      {!matrix ? (
+      {loading ? (
+        <p className="text-slate-500 text-center py-8">Cargando...</p>
+      ) : matrices.length === 0 ? (
         <p className="text-slate-500 text-center py-8">No hay datos para mostrar el mapa. Registra un evento primero.</p>
       ) : (
-        <div className="bg-white p-6 rounded-xl shadow-sm flex flex-col items-center">
-          <Node label="Disparador" value={matrix.triggerEvent} color="bg-blue-500" isLast={false} />
-          <Node label="Pensamiento" value={matrix.cognitiveBias} color="bg-purple-500" isLast={false} />
-          <Node label="Comportamiento" value={matrix.somaticCompulsion} color="bg-orange-500" isLast={false} />
-          <Node label="Consecuencia" value={matrix.feedbackLoop} color="bg-red-500" isLast={true} />
-          <div className="mt-4 text-center">
-            <p className="text-xs text-slate-500">Herida Raíz: {matrix.rootWound}</p>
+        <div className="space-y-6">
+          <div className="bg-white p-4 rounded-xl shadow-sm">
+            <label htmlFor="matrix-select" className="block text-sm font-medium text-slate-700 mb-2">Selecciona un registro:</label>
+            <select
+              id="matrix-select"
+              value={selectedMatrixId || ''}
+              onChange={(e) => setSelectedMatrixId(e.target.value)}
+              className="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
+            >
+              {matrices.map(m => (
+                <option key={m.id} value={m.id}>{formatDate(m.timestamp, true)}</option>
+              ))}
+            </select>
           </div>
+
+          {selectedMatrix && (
+            <div className="bg-white p-6 rounded-xl shadow-sm flex flex-col items-center">
+              <Node label="Disparador" value={selectedMatrix.triggerEvent} color="bg-blue-500" isLast={false} />
+              <Node label="Pensamiento" value={selectedMatrix.cognitiveBias} color="bg-purple-500" isLast={false} />
+              <Node label="Comportamiento" value={selectedMatrix.somaticCompulsion} color="bg-orange-500" isLast={false} />
+              <Node label="Consecuencia" value={selectedMatrix.feedbackLoop} color="bg-red-500" isLast={true} />
+              <div className="mt-4 text-center">
+                <p className="text-xs text-slate-500">Herida Raíz: {selectedMatrix.rootWound}</p>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
