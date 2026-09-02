@@ -13,6 +13,21 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_APP_ID,
 };
 
+// Validate Firebase configuration
+const requiredConfigKeys = [
+  'apiKey', 'authDomain', 'projectId', 'storageBucket', 'messagingSenderId', 'appId'
+];
+
+for (const key of requiredConfigKeys) {
+  const value = firebaseConfig[key as keyof typeof firebaseConfig];
+  if (typeof value !== 'string' || value === '') {
+    throw new Error(
+      `Firebase configuration error: Missing or invalid environment variable for ${key}. ` +
+      `Please ensure VITE_${key.toUpperCase()} is set in your .env files.`
+    );
+  }
+}
+
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
