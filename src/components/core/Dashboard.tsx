@@ -5,6 +5,7 @@ import { CausalMatrix } from '../../types/causal';
 import { useEffect, useState, ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Moon, Activity, Heart, Brain, TrendingDown, Sparkles, Calendar, BarChart, Settings, Network, History } from 'lucide-react';
+import { Timestamp } from 'firebase/firestore';
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -41,6 +42,21 @@ const Dashboard = () => {
   const loopChange = getChange(latestMatrix?.loopIntensity, previousMatrix?.loopIntensity);
   const frictionChange = getChange(latestMatrix?.coupleFriction, previousMatrix?.coupleFriction);
   const sleepChange = getChange(latestMatrix?.sleepLatencyRisk, previousMatrix?.sleepLatencyRisk);
+
+  const isToday = (timestamp: any): boolean => {
+    if (!timestamp) return false;
+    let date;
+    if (timestamp instanceof Date) date = timestamp;
+    else if (timestamp instanceof Timestamp) date = timestamp.toDate();
+    else if (typeof timestamp === 'object' && timestamp.seconds) date = new Date(timestamp.seconds * 1000);
+    else return false;
+    const today = new Date();
+    return date.getDate() === today.getDate() &&
+           date.getMonth() === today.getMonth() &&
+           date.getFullYear() === today.getFullYear();
+  };
+
+  const latestDateLabel = latestMatrix ? (isToday(latestMatrix.timestamp) ? 'Hoy' : 'Último registro') : 'Hoy';
 
   const MetricCard = ({ title, value, change, invertColor }: { title: string; value?: number; change?: number | null; invertColor?: boolean }) => {
     if (value === undefined) {
@@ -106,7 +122,7 @@ const Dashboard = () => {
       <section className="mb-8">
         <h2 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
           <Activity className="w-5 h-5 text-indigo-500" />
-          Hoy
+          {latestDateLabel}
         </h2>
         {loading ? (
           <p className="text-slate-500">Cargando datos...</p>
