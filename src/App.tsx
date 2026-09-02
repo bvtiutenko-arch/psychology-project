@@ -14,6 +14,7 @@ import ConnectionMap from './components/core/ConnectionMap';
 import History from './components/core/History';
 import Landing from './components/public/Landing';
 import { Privacy, Terms, Contact, FAQ, CookiePolicy, LegalNotice } from './components/public/LegalPages';
+import { GroundingExercise } from './components/core/GroundingExercise';
 import { useEffect, useState, useRef, useCallback } from 'react';
 import {
   syncPendingCausalMatrices,
@@ -380,6 +381,7 @@ function App() {
                 <Route path="/settings" element={<Settings />} />
                 <Route path="/connection-map" element={<ConnectionMap />} />
                 <Route path="/history" element={<History />} />
+                <Route path="/grounding" element={<GroundingExercise />} />
                 <Route path="*" element={<Navigate to="/dashboard" replace />} />
               </>
             ) : (
