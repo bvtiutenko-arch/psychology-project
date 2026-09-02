@@ -212,16 +212,16 @@ function App() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen bg-gray-900">
+      <div className="flex items-center justify-center h-screen bg-slate-900">
         <Spinner />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-800 font-sans pt-8">
+    <div className="h-screen bg-slate-50 text-slate-800 font-sans flex flex-col overflow-hidden">
       <Toaster position="top-center" reverseOrder={false} />
-      <div className={`fixed top-0 left-0 right-0 p-1 text-center text-xs font-medium z-50 flex items-center justify-center gap-2 flex-nowrap overflow-x-auto
+      <div className={`flex-shrink-0 p-1 text-center text-xs font-medium z-50 flex items-center justify-center gap-2 flex-nowrap overflow-x-auto
                   ${isOnline ? 'bg-green-500 text-white' : 'bg-red-500 text-white'}`}>
         <span>{isOnline ? 'Online' : 'Offline'}</span>
         {isAppInstalled && (
@@ -250,36 +250,38 @@ function App() {
           </button>
         )}
       </div>
-      <Routes>
-        {/* Public Routes */}
-        <Route path="/" element={<Landing />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/privacy" element={<Privacy />} />
-        <Route path="/terms" element={<Terms />} />
-        <Route path="/contact" element={<Contact />} />
-        <Route path="/faq" element={<FAQ />} />
-        <Route path="/cookies" element={<CookiePolicy />} />
-        <Route path="/legal" element={<LegalNotice />} />
+      <div className="flex-1 overflow-y-auto">
+        <Routes>
+          {/* Public Routes */}
+          <Route path="/" element={<Landing />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/privacy" element={<Privacy />} />
+          <Route path="/terms" element={<Terms />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/faq" element={<FAQ />} />
+          <Route path="/cookies" element={<CookiePolicy />} />
+          <Route path="/legal" element={<LegalNotice />} />
 
-        {/* Protected Routes */}
-        {user ? (
-          <>
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/new-matrix" element={<CausalMatrixForm />} />
-            <Route path="/night-mode" element={<NightMode />} />
-            <Route path="/tomorrow" element={<TomorrowBox />} />
-            <Route path="/analytics" element={<Analytics />} />
-            <Route path="/settings" element={<Settings />} />
-            <Route path="/connection-map" element={<ConnectionMap />} />
-            <Route path="/history" element={<History />} />
-            <Route path="*" element={<Navigate to="/dashboard" replace />} />
-          </>
-        ) : (
-          <>
-            <Route path="*" element={<Navigate to="/login" replace />} />
-          </>
-        )}
-      </Routes>
+          {/* Protected Routes */}
+          {user ? (
+            <>
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/new-matrix" element={<CausalMatrixForm />} />
+              <Route path="/night-mode" element={<NightMode />} />
+              <Route path="/tomorrow" element={<TomorrowBox />} />
+              <Route path="/analytics" element={<Analytics />} />
+              <Route path="/settings" element={<Settings />} />
+              <Route path="/connection-map" element={<ConnectionMap />} />
+              <Route path="/history" element={<History />} />
+              <Route path="*" element={<Navigate to="/dashboard" replace />} />
+            </>
+          ) : (
+            <>
+              <Route path="*" element={<Navigate to="/login" replace />} />
+            </>
+          )}
+        </Routes>
+      </div>
     </div>
   );
 }
