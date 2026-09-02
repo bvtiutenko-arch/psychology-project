@@ -182,7 +182,8 @@ const CausalMatrixForm = () => {
         if (isDevelopment) console.warn('Background Sync API not supported or service worker not ready.');
       }
 
-      await syncPendingCausalMatrices(user.uid);
+      // Attempt immediate sync silently - the user already knows it was saved locally
+      await syncPendingCausalMatrices(user.uid, true);
     } finally {
       setIsSubmitting(false);
     }

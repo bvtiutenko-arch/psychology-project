@@ -105,11 +105,21 @@ function App() {
       if (event.data && event.data.type === 'SYNC_PENDING_CAUSAL_MATRICES') {
         if (isDevelopment) console.log('App.tsx: Received SYNC_PENDING_CAUSAL_MATRICES message from Service Worker.');
         if (user) {
-          toast.loading('Sincronizando matrices pendientes en segundo plano...');
-          await syncPendingCausalMatrices(user.uid);
-          await refreshPendingCount();
-          toast.dismiss();
-          toast.success('Sincronización de matrices pendientes completada.');
+          try {
+            const toastId = toast.loading('Sincronizando matrices pendientes en segundo plano...');
+            await syncPendingCausalMatrices(user.uid, true);
+            const newPendingCount = await getPendingCausalMatricesCount();
+            setPendingMatricesCount(newPendingCount);
+            toast.dismiss(toastId);
+            if (newPendingCount === 0) {
+              toast.success('Sincronización de matrices pendientes completada.');
+            } else {
+              toast.error(`Sincronización parcial. Quedan ${newPendingCount} pendientes.`);
+            }
+          } catch (error) {
+            console.error('Error during background sync:', error);
+            toast.error('Error durante la sincronización en segundo plano.');
+          }
         } else {
           if (isDevelopment) console.warn('App.tsx: Cannot sync pending matrices: User not authenticated.');
         }
@@ -187,21 +197,27 @@ function App() {
       if (navigator.vibrate) {
         navigator.vibrate(50);
       }
-      toast.loading('Intentando sincronizar matrices pendientes...');
-      await syncPendingCausalMatrices(user.uid);
-      const newPendingCount = await getPendingCausalMatricesCount();
-      setPendingMatricesCount(newPendingCount);
-      toast.dismiss();
+      const toastId = toast.loading('Intentando sincronizar matrices pendientes...');
+      try {
+        await syncPendingCausalMatrices(user.uid, true);
+        const newPendingCount = await getPendingCausalMatricesCount();
+        setPendingMatricesCount(newPendingCount);
+        toast.dismiss(toastId);
 
-      if (newPendingCount === 0) {
-        toast.success('Todas las matrices pendientes han sido sincronizadas.');
-        await saveSessionHistory({
-          userId: user.uid,
-          sessionType: 'manual_sync',
-          responses: { success: true, remaining: newPendingCount }
-        }).catch((e) => console.error('Error saving sync session history:', e));
-      } else {
-        toast.error(`Se sincronizaron algunas matrices. Quedan ${newPendingCount} pendientes.`);
+        if (newPendingCount === 0) {
+          toast.success('Todas las matrices pendientes han sido sincronizadas.');
+          await saveSessionHistory({
+            userId: user.uid,
+            sessionType: 'manual_sync',
+            responses: { success: true, remaining: newPendingCount }
+          }).catch((e) => console.error('Error saving sync session history:', e));
+        } else {
+          toast.error(`Se sincronizaron algunas matrices. Quedan ${newPendingCount} pendientes.`);
+        }
+      } catch (error) {
+        console.error('Error during manual sync:', error);
+        toast.dismiss(toastId);
+        toast.error('Error al sincronizar matrices pendientes.');
       }
     } else if (!isOnline) {
       toast.error('Estás desconectado. Conéctate para sincronizar.');

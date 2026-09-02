@@ -102,8 +102,10 @@ export async function clearPendingCausalMatricesForUser(userId: string): Promise
 /**
  * Attempts to synchronize all pending causal matrices from IndexedDB to Firestore.
  * @param userId The ID of the current user.
+ * @param silent If true, no toast notifications are shown by this function.
+ *               The caller is responsible for showing appropriate feedback.
  */
-export async function syncPendingCausalMatrices(userId: string): Promise<void> {
+export async function syncPendingCausalMatrices(userId: string, silent: boolean = false): Promise<void> {
   if (!navigator.onLine) {
     if (isDevelopment) console.log('Offline: Skipping sync of pending causal matrices.');
     return;
@@ -114,7 +116,9 @@ export async function syncPendingCausalMatrices(userId: string): Promise<void> {
     pendingMatrices = await getPendingCausalMatrices();
   } catch (error) {
     console.error('Error fetching pending causal matrices from IndexedDB:', error);
-    toast.error('Error al cargar matrices pendientes para sincronizar.');
+    if (!silent) {
+      toast.error('Error al cargar matrices pendientes para sincronizar.');
+    }
     return;
   }
 
@@ -157,7 +161,7 @@ export async function syncPendingCausalMatrices(userId: string): Promise<void> {
     }
   }
 
-  if (syncedCount > 0 || failedCount > 0) {
+  if (!silent && (syncedCount > 0 || failedCount > 0)) {
     if (syncedCount === pendingMatrices.length) {
       toast.success(`¡Todas las ${syncedCount} matrices pendientes sincronizadas!`);
     } else if (syncedCount > 0) {
