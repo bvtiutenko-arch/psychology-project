@@ -30,5 +30,33 @@ service cloud.firestore {
       allow create: if request.auth.uid == request.resource.data.userId;
       allow update: if request.auth.uid == resource.data.userId && request.resource.data.userId == resource.data.userId;
     }
+
+    // Users can read and write their own night mode entries, ensuring they own the record
+    match /night_mode_entries/{entryId} {
+      allow read, delete: if request.auth.uid == resource.data.userId;
+      allow create: if request.auth.uid == request.resource.data.userId;
+      allow update: if request.auth.uid == resource.data.userId && request.resource.data.userId == resource.data.userId;
+    }
+
+    // Users can read and write their own tomorrow tasks, ensuring they own the record
+    match /tomorrow_tasks/{taskId} {
+      allow read, delete: if request.auth.uid == resource.data.userId;
+      allow create: if request.auth.uid == request.resource.data.userId;
+      allow update: if request.auth.uid == resource.data.userId && request.resource.data.userId == resource.data.userId;
+    }
+
+    // Users can read and write their own test results, ensuring they own the record
+    match /testResults/{resultId} {
+      allow read, delete: if request.auth.uid == resource.data.userId;
+      allow create: if request.auth.uid == request.resource.data.userId;
+      allow update: if request.auth.uid == resource.data.userId && request.resource.data.userId == resource.data.userId;
+    }
+
+    // Users can read and write their own session history, ensuring they own the record
+    match /sessionHistory/{sessionId} {
+      allow read, delete: if request.auth.uid == resource.data.userId;
+      allow create: if request.auth.uid == request.resource.data.userId;
+      allow update: if request.auth.uid == resource.data.userId && request.resource.data.userId == resource.data.userId;
+    }
   }
 }
