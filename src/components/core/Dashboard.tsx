@@ -1,7 +1,7 @@
 import { auth } from '../../firebase';
 import { useAuth } from '../../hooks/useAuth';
 import { getCausalMatrices } from '../../services/db';
-import { CausalMatrix } from '../../types/causal';
+import { CausalMatrix, SomaticCompulsion } from '../../types/causal';
 import { useEffect, useState, ReactNode } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Plus, Moon, Activity, Heart, TrendingDown, Sparkles, Calendar, BarChart, Settings, Network, History, Lightbulb, Anchor, FlaskConical } from 'lucide-react';
@@ -73,8 +73,12 @@ const getWellBeingLabel = (score: number): string => {
   return 'Atención';
 };
 
-const getInsight = (matrix: CausalMatrix | undefined): string | null => {
+const getInsight = (matrix: CausalMatrix | undefined, checkingFrequency: number): string | null => {
   if (!matrix) return null;
+  
+  if (checkingFrequency > 5) {
+    return "Has registrado comportamientos de comprobación (revisar última conexión, mensajes impulsivos) con frecuencia. Considera practicar técnicas de tolerancia a la incertidumbre.";
+  }
   
   if (matrix.sleepLatencyRisk > 70) {
     return "Tu riesgo de insomnio está alto. Considera practicar técnicas de relajación antes de dormir y limitar el uso de dispositivos.";
@@ -145,7 +149,13 @@ const Dashboard = () => {
 
   const latestDateLabel = latestMatrix ? (isToday(latestMatrix.timestamp) ? 'Hoy' : 'Último registro') : 'Hoy';
   const wellBeingScore = latestMatrix ? getWellBeingScore(latestMatrix) : null;
-  const insight = getInsight(latestMatrix);
+  
+  const checkingFrequency = matrices.filter(m => 
+    m.somaticCompulsion === SomaticCompulsion.LastSeenChecking || 
+    m.somaticCompulsion === SomaticCompulsion.ImpulsiveMessaging
+  ).length;
+  
+  const insight = getInsight(latestMatrix, checkingFrequency);
 
   return (
     <div className="min-h-screen bg-slate-50 p-4 sm:p-8 max-w-4xl mx-auto">
