@@ -126,6 +126,15 @@ export async function getCausalMatrices(userId: string): Promise<CausalMatrix[]>
 }
 
 /**
+ * Deletes a specific causal matrix from Firestore.
+ * @param matrixId The ID of the matrix to delete.
+ */
+export async function deleteCausalMatrix(matrixId: string): Promise<void> {
+  const matrixRef = doc(db, 'causal_matrices', matrixId);
+  await deleteDoc(matrixRef);
+}
+
+/**
  * Saves a night mode entry to Firestore.
  * @param entry The night mode entry data.
  * @returns The ID of the newly created document.
@@ -157,6 +166,15 @@ export async function getNightModeEntries(userId: string): Promise<NightModeEntr
   });
   
   return entries;
+}
+
+/**
+ * Deletes a specific night mode entry from Firestore.
+ * @param entryId The ID of the night mode entry to delete.
+ */
+export async function deleteNightModeEntry(entryId: string): Promise<void> {
+  const entryRef = doc(db, 'night_mode_entries', entryId);
+  await deleteDoc(entryRef);
 }
 
 // --- Tomorrow Box ---

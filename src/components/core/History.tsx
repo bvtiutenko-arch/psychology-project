@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
-import { getCausalMatrices, getNightModeEntries } from '../../services/db';
+import { getCausalMatrices, getNightModeEntries, deleteCausalMatrix, deleteNightModeEntry } from '../../services/db';
 import { CausalMatrix } from '../../types/causal';
 import { NightModeEntry } from '../../types/nightMode';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Brain, Moon } from 'lucide-react';
+import { ArrowLeft, Brain, Moon, Trash2 } from 'lucide-react';
 import { formatDate } from '../../utils/date';
+import toast from 'react-hot-toast';
 
 const History = () => {
   const { user } = useAuth();
@@ -30,6 +31,32 @@ const History = () => {
     }
   }, [user]);
 
+  const handleDeleteMatrix = async (id: string) => {
+    if (window.confirm('¿Estás seguro? Esta acción no se puede deshacer.')) {
+      try {
+        await deleteCausalMatrix(id);
+        setMatrices(matrices.filter(m => m.id !== id));
+        toast.success('Matriz eliminada.');
+      } catch (error) {
+        console.error('Error deleting matrix:', error);
+        toast.error('Error al eliminar la matriz.');
+      }
+    }
+  };
+
+  const handleDeleteNightEntry = async (id: string) => {
+    if (window.confirm('¿Estás seguro? Esta acción no se puede deshacer.')) {
+      try {
+        await deleteNightModeEntry(id);
+        setNightEntries(nightEntries.filter(e => e.id !== id));
+        toast.success('Registro eliminado.');
+      } catch (error) {
+        console.error('Error deleting night entry:', error);
+        toast.error('Error al eliminar el registro.');
+      }
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 p-6 max-w-4xl mx-auto">
       <header className="flex items-center mb-8">
@@ -53,7 +80,13 @@ const History = () => {
             ) : (
               <div className="space-y-4">
                 {matrices.map((matrix) => (
-                  <div key={matrix.id} className="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
+                  <div key={matrix.id} className="bg-white p-4 rounded-xl shadow-sm border border-slate-100 relative">
+                    <button 
+                      onClick={() => handleDeleteMatrix(matrix.id!)}
+                      className="absolute top-2 right-2 text-slate-400 hover:text-red-500 p-1 rounded-full hover:bg-slate-100"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
                     <p className="text-xs text-slate-500 mb-2">{formatDate(matrix.timestamp, true)}</p>
                     <div className="grid grid-cols-2 gap-2 text-sm">
                       <div><span className="font-medium text-slate-700">Herida:</span> {matrix.rootWound}</div>
@@ -78,7 +111,13 @@ const History = () => {
             ) : (
               <div className="space-y-4">
                 {nightEntries.map((entry) => (
-                  <div key={entry.id} className="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
+                  <div key={entry.id} className="bg-white p-4 rounded-xl shadow-sm border border-slate-100 relative">
+                    <button 
+                      onClick={() => handleDeleteNightEntry(entry.id!)}
+                      className="absolute top-2 right-2 text-slate-400 hover:text-red-500 p-1 rounded-full hover:bg-slate-100"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
                     <p className="text-xs text-slate-500 mb-2">{formatDate(entry.timestamp, true)}</p>
                     <p className="text-sm text-slate-800 mb-2"><span className="font-medium">Pensamiento:</span> {entry.thought}</p>
                     {entry.needsActionNow ? (
