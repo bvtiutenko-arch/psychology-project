@@ -77,7 +77,7 @@ const getInsight = (matrix: CausalMatrix | undefined, checkingFrequency: number)
   if (!matrix) return null;
   
   if (checkingFrequency > 5) {
-    return "Has registrado comportamientos de comprobación (revisar última conexión, mensajes impulsivos) con frecuencia. Considera practicar técnicas de tolerancia a la incertidumbre.";
+    return "Has registrado comportamientos de comprobación (revisar última conexión, mensajes impulsivos) con frecuencia en tus últimos registros. Considera practicar técnicas de tolerancia a la incertidumbre.";
   }
   
   if (matrix.sleepLatencyRisk > 70) {
@@ -150,7 +150,9 @@ const Dashboard = () => {
   const latestDateLabel = latestMatrix ? (isToday(latestMatrix.timestamp) ? 'Hoy' : 'Último registro') : 'Hoy';
   const wellBeingScore = latestMatrix ? getWellBeingScore(latestMatrix) : null;
   
-  const checkingFrequency = matrices.filter(m => 
+  // Only consider the 10 most recent records for the checking frequency insight
+  const recentMatrices = matrices.slice(0, 10);
+  const checkingFrequency = recentMatrices.filter(m => 
     m.somaticCompulsion === SomaticCompulsion.LastSeenChecking || 
     m.somaticCompulsion === SomaticCompulsion.ImpulsiveMessaging
   ).length;

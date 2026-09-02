@@ -297,8 +297,8 @@ export async function deleteAllUserData(userId: string): Promise<void> {
     }
   }
   
-  // Delete the user document itself to complete the reset
-  await deleteDoc(doc(db, 'users', userId));
+  // Note: We do not delete the user document itself because Firestore rules disallow it for safety.
+  // The user can still log in, but their data is cleared.
 }
 
 export async function exportUserData(userId: string): Promise<Record<string, any>> {
