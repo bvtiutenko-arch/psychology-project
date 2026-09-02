@@ -2,6 +2,7 @@ import { useAuth } from './hooks/useAuth';
 import Login from './components/auth/Login';
 import Dashboard from './components/core/Dashboard';
 import Spinner from './components/ui/Spinner';
+import ErrorBoundary from './components/ui/ErrorBoundary';
 import { Toaster } from 'react-hot-toast';
 import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import CausalMatrixForm from './components/causal/CausalMatrixForm';
@@ -289,36 +290,38 @@ function App() {
         )}
       </div>
       <div className="flex-1 overflow-y-auto">
-        <Routes>
-          {/* Public Routes */}
-          <Route path="/" element={<Landing />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/privacy" element={<Privacy />} />
-          <Route path="/terms" element={<Terms />} />
-          <Route path="/contact" element={<Contact />} />
-          <Route path="/faq" element={<FAQ />} />
-          <Route path="/cookies" element={<CookiePolicy />} />
-          <Route path="/legal" element={<LegalNotice />} />
+        <ErrorBoundary>
+          <Routes>
+            {/* Public Routes */}
+            <Route path="/" element={<Landing />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/privacy" element={<Privacy />} />
+            <Route path="/terms" element={<Terms />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/faq" element={<FAQ />} />
+            <Route path="/cookies" element={<CookiePolicy />} />
+            <Route path="/legal" element={<LegalNotice />} />
 
-          {/* Protected Routes */}
-          {user ? (
-            <>
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/new-matrix" element={<CausalMatrixForm />} />
-              <Route path="/night-mode" element={<NightMode />} />
-              <Route path="/tomorrow" element={<TomorrowBox />} />
-              <Route path="/analytics" element={<Analytics />} />
-              <Route path="/settings" element={<Settings />} />
-              <Route path="/connection-map" element={<ConnectionMap />} />
-              <Route path="/history" element={<History />} />
-              <Route path="*" element={<Navigate to="/dashboard" replace />} />
-            </>
-          ) : (
-            <>
-              <Route path="*" element={<Navigate to="/login" replace />} />
-            </>
-          )}
-        </Routes>
+            {/* Protected Routes */}
+            {user ? (
+              <>
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/new-matrix" element={<CausalMatrixForm />} />
+                <Route path="/night-mode" element={<NightMode />} />
+                <Route path="/tomorrow" element={<TomorrowBox />} />
+                <Route path="/analytics" element={<Analytics />} />
+                <Route path="/settings" element={<Settings />} />
+                <Route path="/connection-map" element={<ConnectionMap />} />
+                <Route path="/history" element={<History />} />
+                <Route path="*" element={<Navigate to="/dashboard" replace />} />
+              </>
+            ) : (
+              <>
+                <Route path="*" element={<Navigate to="/login" replace />} />
+              </>
+            )}
+          </Routes>
+        </ErrorBoundary>
       </div>
     </div>
   );
