@@ -100,7 +100,7 @@ const Dashboard = () => {
     <div className="min-h-screen bg-slate-50 p-4 sm:p-8 max-w-4xl mx-auto">
       <header className="flex justify-between items-center mb-8">
         <h1 className="text-xl sm:text-2xl font-bold text-slate-800">
-          Hola, {user?.displayName?.split(' ')[0]}
+          Hola, {user?.displayName?.split(' ')[0] || 'usuario'}
         </h1>
         <button 
           onClick={handleLogout}
