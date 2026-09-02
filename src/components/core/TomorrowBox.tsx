@@ -15,10 +15,15 @@ const TomorrowBox = () => {
 
   useEffect(() => {
     if (user) {
-      getTomorrowTasks(user.uid).then(data => {
-        setTasks(data);
-        setLoading(false);
-      });
+      getTomorrowTasks(user.uid)
+        .then(data => {
+          setTasks(data);
+          setLoading(false);
+        })
+        .catch(err => {
+          console.error('Error fetching tomorrow tasks:', err);
+          setLoading(false);
+        });
     }
   }, [user]);
 
@@ -36,7 +41,7 @@ const TomorrowBox = () => {
   };
 
   const handleToggle = async (task: TomorrowTask) => {
-    if (!task.id) return;
+    if (!task.id || !user) return;
     try {
       await updateTomorrowTask(task.id, { completed: !task.completed, completedAt: !task.completed ? new Date() : null });
       const updatedTasks = await getTomorrowTasks(user.uid);

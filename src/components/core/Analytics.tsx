@@ -21,7 +21,14 @@ const Chart = ({ title, matrices, metricKey, color }: { title: string; matrices:
           return (
             <div key={i} className="flex flex-col items-center justify-end h-full w-12 flex-shrink-0">
               <div className="w-full bg-slate-100 rounded-t-sm relative" style={{ height: '100%' }}>
-                <div className={`absolute bottom-0 w-full ${color} rounded-t-sm transition-all duration-500`} style={{ height: `${(val / max) * 100}%` }}></div>
+                <div
+                  className={`absolute bottom-0 w-full ${color} rounded-t-sm transition-all duration-500 flex items-start justify-center pt-1`}
+                  style={{ height: `${(val / max) * 100}%` }}
+                >
+                  {val >= 15 && (
+                    <span className="text-xs text-white font-medium">{val}</span>
+                  )}
+                </div>
               </div>
               <span className="text-xs text-slate-400 mt-1 whitespace-nowrap">{formatDate(matrix.timestamp)}</span>
             </div>
@@ -64,10 +71,19 @@ const Analytics = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [matrices, setMatrices] = useState<CausalMatrix[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (user) {
-      getCausalMatrices(user.uid).then(data => setMatrices(data)); // Keep descending (newest first)
+      getCausalMatrices(user.uid)
+        .then(data => {
+          setMatrices(data);
+          setLoading(false);
+        })
+        .catch(err => {
+          console.error('Error fetching analytics data:', err);
+          setLoading(false);
+        });
     }
   }, [user]);
 
@@ -91,7 +107,9 @@ const Analytics = () => {
         <h1 className="text-xl font-bold ml-2 text-slate-800">Análisis</h1>
       </header>
 
-      {matrices.length === 0 ? (
+      {loading ? (
+        <p className="text-slate-500 text-center py-8">Cargando análisis...</p>
+      ) : matrices.length === 0 ? (
         <p className="text-slate-500 text-center py-8">No hay datos suficientes para análisis. Registra más eventos.</p>
       ) : (
         <div className="space-y-6">
