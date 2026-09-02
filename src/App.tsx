@@ -3,16 +3,22 @@ import Login from './components/auth/Login';
 import Dashboard from './components/core/Dashboard';
 import Spinner from './components/ui/Spinner';
 import { Toaster } from 'react-hot-toast';
-import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom'; // Import routing components
-import CausalMatrixForm from './components/causal/CausalMatrixForm'; // Import CausalMatrixForm
-import NightMode from './components/core/NightMode'; // Import NightMode
+import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
+import CausalMatrixForm from './components/causal/CausalMatrixForm';
+import NightMode from './components/core/NightMode';
+import TomorrowBox from './components/core/TomorrowBox';
+import Analytics from './components/core/Analytics';
+import Settings from './components/core/Settings';
+import ConnectionMap from './components/core/ConnectionMap';
+import Landing from './components/public/Landing';
+import { Privacy, Terms, Contact, FAQ } from './components/public/LegalPages';
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { syncPendingCausalMatrices, getPendingCausalMatricesCount, clearPendingCausalMatricesForUser } from './services/offlineSync';
-import { saveSessionHistory } from './services/db'; // Import DB function
+import { saveSessionHistory } from './services/db';
 import toast from 'react-hot-toast';
 import { RotateCw, Download } from 'lucide-react';
 
-const isDevelopment = import.meta.env.DEV; // Determine if in development environment
+const isDevelopment = import.meta.env.DEV;
 
 function App() {
   const { user, loading } = useAuth();
@@ -54,7 +60,6 @@ function App() {
     window.addEventListener('appinstalled', handleAppInstalled);
 
     return () => {
-      // FIX: Corrected the event name to match the addEventListener string
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
       window.removeEventListener('appinstalled', handleAppInstalled);
     };
@@ -119,7 +124,7 @@ function App() {
       window.removeEventListener('offline', handleOnlineStatusChange);
       clearInterval(intervalId);
     };
-  }, [user, refreshPendingCount]); // FIX: Removed isOnline from dependency array as it's not needed
+  }, [user, refreshPendingCount]);
 
   useEffect(() => {
     if (!loading) {
@@ -189,7 +194,6 @@ function App() {
 
       if (newPendingCount === 0) {
         toast.success('Todas las matrices pendientes han sido sincronizadas.');
-        // Save session history for manual sync
         await saveSessionHistory({
           userId: user.uid,
           sessionType: 'manual_sync',
@@ -246,22 +250,28 @@ function App() {
         )}
       </div>
       <Routes>
+        {/* Public Routes */}
+        <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/privacy" element={<Privacy />} />
+        <Route path="/terms" element={<Terms />} />
+        <Route path="/contact" element={<Contact />} />
+        <Route path="/faq" element={<FAQ />} />
+
+        {/* Protected Routes */}
         {user ? (
           <>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/new-matrix" element={<CausalMatrixForm />} />
             <Route path="/night-mode" element={<NightMode />} />
-            {/* Redirect root path to dashboard if authenticated and no specific action */}
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
-            {/* Redirect any other path to dashboard if authenticated and no specific action */}
+            <Route path="/tomorrow" element={<TomorrowBox />} />
+            <Route path="/analytics" element={<Analytics />} />
+            <Route path="/settings" element={<Settings />} />
+            <Route path="/connection-map" element={<ConnectionMap />} />
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </>
-        ) : ( // Not authenticated
+        ) : (
           <>
-            {/* Redirect root path to login if not authenticated */}
-            <Route path="/" element={<Navigate to="/login" replace />} />
-            {/* Redirect any other path to login if not authenticated */}
             <Route path="*" element={<Navigate to="/login" replace />} />
           </>
         )}

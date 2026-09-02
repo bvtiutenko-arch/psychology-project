@@ -2,9 +2,9 @@ import { auth } from '../../firebase';
 import { useAuth } from '../../hooks/useAuth';
 import { getCausalMatrices } from '../../services/db';
 import { CausalMatrix } from '../../types/causal';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Moon, Activity, Heart, Brain, TrendingDown, Sparkles } from 'lucide-react';
+import { Plus, Moon, Activity, Heart, Brain, TrendingDown, Sparkles, Calendar, BarChart, Settings, Network } from 'lucide-react';
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -69,6 +69,16 @@ const Dashboard = () => {
     );
   };
 
+  const NavCard = ({ icon, title, path, color }: { icon: ReactNode; title: string; path: string; color: string }) => (
+    <button 
+      onClick={() => navigate(path)}
+      className={`${color} text-white p-4 rounded-xl shadow-sm hover:opacity-90 transition-opacity flex flex-col items-center justify-center gap-2`}
+    >
+      {icon}
+      <span className="font-medium text-sm">{title}</span>
+    </button>
+  );
+
   return (
     <div className="min-h-screen bg-slate-50 p-4 sm:p-8 max-w-4xl mx-auto">
       <header className="flex justify-between items-center mb-8">
@@ -83,21 +93,13 @@ const Dashboard = () => {
         </button>
       </header>
 
-      <div className="grid grid-cols-2 gap-4 mb-8">
-        <button 
-          onClick={() => navigate('/new-matrix')}
-          className="bg-indigo-600 text-white p-4 rounded-xl shadow-sm hover:bg-indigo-700 transition-colors flex flex-col items-center justify-center gap-2"
-        >
-          <Plus className="w-6 h-6" />
-          <span className="font-medium text-sm">Registrar Evento</span>
-        </button>
-        <button 
-          onClick={() => navigate('/night-mode')}
-          className="bg-slate-800 text-white p-4 rounded-xl shadow-sm hover:bg-slate-900 transition-colors flex flex-col items-center justify-center gap-2"
-        >
-          <Moon className="w-6 h-6" />
-          <span className="font-medium text-sm">No Puedo Dormir</span>
-        </button>
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-8">
+        <NavCard icon={<Plus className="w-6 h-6" />} title="Registrar Evento" path="/new-matrix" color="bg-indigo-600" />
+        <NavCard icon={<Moon className="w-6 h-6" />} title="No Puedo Dormir" path="/night-mode" color="bg-slate-800" />
+        <NavCard icon={<Calendar className="w-6 h-6" />} title="Caja de Mañana" path="/tomorrow" color="bg-blue-500" />
+        <NavCard icon={<Network className="w-6 h-6" />} title="Mapa de Conexión" path="/connection-map" color="bg-purple-500" />
+        <NavCard icon={<BarChart className="w-6 h-6" />} title="Análisis" path="/analytics" color="bg-green-500" />
+        <NavCard icon={<Settings className="w-6 h-6" />} title="Ajustes" path="/settings" color="bg-slate-500" />
       </div>
 
       <section className="mb-8">

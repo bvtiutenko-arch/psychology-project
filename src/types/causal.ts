@@ -1,4 +1,4 @@
-import { FieldValue } from 'firebase/firestore';
+import { FieldValue, Timestamp } from 'firebase/firestore';
 
 /**
  * Defines the core types and enums for the Causal Matrix feature.
@@ -85,7 +85,7 @@ export type CausalMatrixData = CausalInputs & Omit<MentalMetrics, 'interventionS
 export interface CausalMatrix extends CausalInputs {
   id: string;
   userId: string;
-  timestamp: Date; // Assuming conversion from Firestore Timestamp to Date
+  timestamp: Timestamp;
   clarityIndex: number;
   loopIntensity: number;
   coupleFriction: number;
@@ -101,4 +101,3 @@ export interface MentalMetrics {
   sleepLatencyRisk: number; // 0-100%
   interventionStrategies: InterventionStrategy[];
 }
-

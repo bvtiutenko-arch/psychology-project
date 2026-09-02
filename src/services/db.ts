@@ -9,10 +9,13 @@ import {
   where, 
   serverTimestamp,
   Timestamp,
-  orderBy 
+  orderBy,
+  deleteDoc,
+  writeBatch
 } from 'firebase/firestore';
 import { CausalMatrixData, CausalMatrix } from '../types/causal';
 import { NightModeEntry } from '../types/nightMode';
+import { TomorrowTask } from '../types/tomorrowBox';
 
 export interface TestResult {
   id?: string;
@@ -118,4 +121,60 @@ export async function getCausalMatrices(userId: string): Promise<CausalMatrix[]>
 export async function saveNightModeEntry(entry: Omit<NightModeEntry, 'id'>): Promise<string> {
   const docRef = await addDoc(collection(db, 'night_mode_entries'), entry);
   return docRef.id;
+}
+
+// --- Tomorrow Box ---
+
+export async function saveTomorrowTask(task: Omit<TomorrowTask, 'id' | 'createdAt' | 'completedAt'>): Promise<string> {
+  const docRef = await addDoc(collection(db, 'tomorrow_tasks'), {
+    ...task,
+    createdAt: serverTimestamp(),
+    completedAt: null
+  });
+  return docRef.id;
+}
+
+export async function getTomorrowTasks(userId: string): Promise<TomorrowTask[]> {
+  const q = query(collection(db, 'tomorrow_tasks'), where('userId', '==', userId), orderBy('createdAt', 'desc'));
+  const querySnapshot = await getDocs(q);
+  return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as TomorrowTask));
+}
+
+export async function updateTomorrowTask(taskId: string, updates: Partial<TomorrowTask>): Promise<void> {
+  const taskRef = doc(db, 'tomorrow_tasks', taskId);
+  await updateDoc(taskRef, updates);
+}
+
+export async function deleteTomorrowTask(taskId: string): Promise<void> {
+  const taskRef = doc(db, 'tomorrow_tasks', taskId);
+  await deleteDoc(taskRef);
+}
+
+// --- Privacy / Data Management ---
+
+export async function deleteAllUserData(userId: string): Promise<void> {
+  const collectionsToDelete = ['causal_matrices', 'night_mode_entries', 'tomorrow_tasks', 'testResults', 'sessionHistory'];
+  
+  for (const colName of collectionsToDelete) {
+    const q = query(collection(db, colName), where('userId', '==', userId));
+    const snapshot = await getDocs(q);
+    const batch = writeBatch(db);
+    snapshot.docs.forEach((doc) => {
+      batch.delete(doc.ref);
+    });
+    await batch.commit();
+  }
+}
+
+export async function exportUserData(userId: string): Promise<Record<string, any>> {
+  const data: Record<string, any> = {};
+  const collectionsToExport = ['causal_matrices', 'night_mode_entries', 'tomorrow_tasks', 'testResults', 'sessionHistory'];
+  
+  for (const colName of collectionsToExport) {
+    const q = query(collection(db, colName), where('userId', '==', userId));
+    const snapshot = await getDocs(q);
+    data[colName] = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  }
+  
+  return data;
 }

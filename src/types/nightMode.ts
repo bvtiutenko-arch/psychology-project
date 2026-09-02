@@ -1,4 +1,4 @@
-import { FieldValue } from 'firebase/firestore';
+import { FieldValue, Timestamp } from 'firebase/firestore';
 
 export interface NightModeEntry {
   id?: string;
@@ -6,5 +6,5 @@ export interface NightModeEntry {
   thought: string;
   needsActionNow: boolean;
   actionForTomorrow?: string;
-  timestamp: Date | FieldValue;
+  timestamp: Date | Timestamp | FieldValue;
 }
