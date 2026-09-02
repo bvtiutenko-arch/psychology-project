@@ -17,3 +17,13 @@ body {
 #root {
   min-height: 100vh;
 }
+
+/* Safe area utilities for mobile devices with notches/home indicators */
+@layer utilities {
+  .safe-area-top {
+    padding-top: env(safe-area-inset-top);
+  }
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}

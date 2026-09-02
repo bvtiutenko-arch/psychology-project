@@ -14,7 +14,7 @@ import ConnectionMap from './components/core/ConnectionMap';
 import History from './components/core/History';
 import Landing from './components/public/Landing';
 import { Privacy, Terms, Contact, FAQ, CookiePolicy, LegalNotice } from './components/public/LegalPages';
-import { GroundingExercise } from './components/core/GroundingExercise';
+import GroundingExercise from './components/core/GroundingExercise';
 import BottomNav from './components/core/BottomNav';
 import { useEffect, useState, useRef, useCallback } from 'react';
 import {
@@ -329,7 +329,7 @@ function App() {
           },
         }}
       />
-      <div className={`flex-shrink-0 p-1 text-center text-xs font-medium z-50 flex items-center justify-center gap-2 flex-nowrap overflow-x-auto
+      <div className={`flex-shrink-0 p-1 text-center text-xs font-medium z-50 flex items-center justify-center gap-2 flex-nowrap overflow-x-auto safe-area-top
                   ${isOnline ? 'bg-green-500 text-white' : 'bg-red-500 text-white'}`}>
         <span>{isOnline ? 'En línea' : 'Sin conexión'}</span>
         {isAppInstalled && (
