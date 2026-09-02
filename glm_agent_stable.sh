@@ -12,7 +12,7 @@ export VERTEXAI_PROJECT="mypsichology"
 export VERTEXAI_LOCATION="global"
 
 # НЕ передаємо credentials Aider
-CREDENTIALS_PATH="${GOOGLE_APPLICATION_CREDENTIALS:-}"
+CREDENTIALS_PATH="$HOME/.config/firebase-sa.json"
 unset GOOGLE_APPLICATION_CREDENTIALS
 
 unset OPENROUTER_API_KEY
