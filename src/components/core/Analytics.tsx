@@ -8,18 +8,22 @@ import { formatDate } from '../../utils/date';
 
 const Chart = ({ title, matrices, metricKey, color }: { title: string; matrices: CausalMatrix[]; metricKey: keyof CausalMatrix; color: string }) => {
   const max = 100; // Metrics are 0-100
+  const displayMatrices = [...matrices].slice(0, 10).reverse(); // Get newest 10, reverse for chronological order
+  
+  if (displayMatrices.length === 0) return null;
+
   return (
     <div className="mb-8">
       <h3 className="text-lg font-bold text-slate-700 mb-4">{title}</h3>
-      <div className="flex items-end gap-2 h-40 border-b border-slate-200">
-        {matrices.map((matrix, i) => {
-          const val = matrix[metricKey] as number;
+      <div className="flex items-end gap-2 h-40 border-b border-slate-200 overflow-x-auto pb-2">
+        {displayMatrices.map((matrix, i) => {
+          const val = typeof matrix[metricKey] === 'number' ? matrix[metricKey] as number : 0;
           return (
-            <div key={i} className="flex-1 flex flex-col items-center justify-end h-full">
+            <div key={i} className="flex flex-col items-center justify-end h-full w-12 flex-shrink-0">
               <div className="w-full bg-slate-100 rounded-t-sm relative" style={{ height: '100%' }}>
                 <div className={`absolute bottom-0 w-full ${color} rounded-t-sm transition-all duration-500`} style={{ height: `${(val / max) * 100}%` }}></div>
               </div>
-              <span className="text-xs text-slate-400 mt-1">{formatDate(matrix.timestamp)}</span>
+              <span className="text-xs text-slate-400 mt-1 whitespace-nowrap">{formatDate(matrix.timestamp)}</span>
             </div>
           );
         })}
@@ -31,8 +35,8 @@ const Chart = ({ title, matrices, metricKey, color }: { title: string; matrices:
 const getMostFrequent = (matrices: CausalMatrix[], key: keyof CausalMatrix): string => {
   const counts: Record<string, number> = {};
   matrices.forEach(m => {
-    const val = m[key] as string;
-    if (val) {
+    const val = m[key];
+    if (typeof val === 'string' && val) {
       counts[val] = (counts[val] || 0) + 1;
     }
   });
@@ -49,7 +53,10 @@ const getMostFrequent = (matrices: CausalMatrix[], key: keyof CausalMatrix): str
 
 const getAverage = (matrices: CausalMatrix[], key: keyof CausalMatrix): number => {
   if (matrices.length === 0) return 0;
-  const sum = matrices.reduce((acc, m) => acc + (m[key] as number), 0);
+  const sum = matrices.reduce((acc, m) => {
+    const val = m[key];
+    return acc + (typeof val === 'number' ? val : 0);
+  }, 0);
   return Math.round(sum / matrices.length);
 };
 
@@ -60,7 +67,7 @@ const Analytics = () => {
 
   useEffect(() => {
     if (user) {
-      getCausalMatrices(user.uid).then(data => setMatrices(data.reverse())); // Reverse for chronological order
+      getCausalMatrices(user.uid).then(data => setMatrices(data)); // Keep descending (newest first)
     }
   }, [user]);
 
