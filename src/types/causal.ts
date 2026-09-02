@@ -46,7 +46,21 @@ export enum FeedbackLoop {
   BrainFog = "Niebla mental",
 }
 
-// 6. Estrategia de Intervención (Intervention Strategy)
+// 6. Emoción Principal (Primary Emotion)
+export enum Emotion {
+  Anxiety = "Ansiedad",
+  Sadness = "Tristeza",
+  Anger = "Ira",
+  Fear = "Miedo",
+  Guilt = "Culpa",
+  Shame = "Vergüenza",
+  Hope = "Esperanza",
+  Calm = "Calma",
+  Uncertainty = "Incertidumbre",
+  Frustration = "Frustración",
+}
+
+// 7. Estrategia de Intervención (Intervention Strategy)
 export enum InterventionStrategy {
   Mindfulness = "Mindfulness y Respiración",
   CognitiveRestructuring = "Reestructuración Cognitiva",
@@ -63,6 +77,8 @@ export type CausalInputs = {
   cognitiveBias: CognitiveBias;
   somaticCompulsion: SomaticCompulsion;
   feedbackLoop: FeedbackLoop;
+  emotion: Emotion;
+  intensity: number; // 1-5 scale
 };
 
 // Type for a causal matrix submission that is pending synchronization

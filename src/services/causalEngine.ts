@@ -7,6 +7,7 @@ import {
   CognitiveBias,
   SomaticCompulsion,
   FeedbackLoop,
+  Emotion,
 } from '../types/causal';
 
 // This is a simplified model. In a real-world scenario, these weights would be
@@ -42,6 +43,18 @@ const weights = {
     [FeedbackLoop.NightCortisol]: { loopIntensity: 15, sleepLatencyRisk: 30 },
     [FeedbackLoop.Insomnia]: { sleepLatencyRisk: 40, clarity: -15 },
     [FeedbackLoop.BrainFog]: { clarity: -30 },
+  },
+  emotion: {
+    [Emotion.Anxiety]: { loopIntensity: 20, sleepLatencyRisk: 10, clarity: -10 },
+    [Emotion.Sadness]: { loopIntensity: 10, clarity: -15 },
+    [Emotion.Anger]: { loopIntensity: 15, coupleFriction: 20 },
+    [Emotion.Fear]: { loopIntensity: 20, sleepLatencyRisk: 15, clarity: -10 },
+    [Emotion.Guilt]: { loopIntensity: 10, clarity: -10, coupleFriction: 10 },
+    [Emotion.Shame]: { loopIntensity: 15, clarity: -20 },
+    [Emotion.Hope]: { loopIntensity: -10, clarity: 20 },
+    [Emotion.Calm]: { loopIntensity: -15, clarity: 25, sleepLatencyRisk: -10 },
+    [Emotion.Uncertainty]: { loopIntensity: 25, clarity: -15 },
+    [Emotion.Frustration]: { loopIntensity: 15, coupleFriction: 15, clarity: -10 },
   },
 };
 
@@ -87,6 +100,14 @@ const recommendInterventionStrategies = (inputs: CausalInputs, metrics: Omit<Men
     strategies.add(InterventionStrategy.PhysicalActivity);
   }
 
+  // Emotion-based recommendations
+  if (inputs.emotion === Emotion.Anxiety || inputs.emotion === Emotion.Fear || inputs.emotion === Emotion.Uncertainty) {
+    strategies.add(InterventionStrategy.Mindfulness);
+  }
+  if (inputs.emotion === Emotion.Anger || inputs.emotion === Emotion.Frustration) {
+    strategies.add(InterventionStrategy.PhysicalActivity);
+  }
+
   // Add a general recommendation if no specific high-risk factors are present but user is logging
   if (strategies.size === 0) {
     strategies.add(InterventionStrategy.Mindfulness);
@@ -111,6 +132,7 @@ export function calculateCausalMatrixMetrics(inputs: CausalInputs): {
     { type: 'cognitiveBias', value: inputs.cognitiveBias },
     { type: 'somaticCompulsion', value: inputs.somaticCompulsion },
     { type: 'feedbackLoop', value: inputs.feedbackLoop },
+    { type: 'emotion', value: inputs.emotion },
   ] as const;
 
   for (const layer of layers) {
@@ -123,6 +145,11 @@ export function calculateCausalMatrixMetrics(inputs: CausalInputs): {
       sleepLatencyRisk += layerWeights.sleepLatencyRisk || 0;
     }
   }
+
+  // Intensity affects loop intensity and sleep risk
+  const intensityFactor = (inputs.intensity - 1) * 5; // 0 for 1, 20 for 5
+  loopIntensity += intensityFactor;
+  sleepLatencyRisk += intensityFactor / 2;
 
   // Interaction Effects for more realistic scoring
   // Example 1: Anxious attachment combined with a seen message without reply significantly increases couple friction.

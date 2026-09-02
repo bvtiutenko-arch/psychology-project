@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
-import { CausalInputs, RootWound, TriggerEvent, CognitiveBias, SomaticCompulsion, FeedbackLoop, MentalMetrics, CausalMatrixData } from '../../types/causal';
+import { CausalInputs, RootWound, TriggerEvent, CognitiveBias, SomaticCompulsion, FeedbackLoop, Emotion, MentalMetrics, CausalMatrixData } from '../../types/causal';
 import toast from 'react-hot-toast';
 import { calculateCausalMatrixMetrics } from '../../services/causalEngine';
 import { getMetricColorClass } from '../../lib/metrics';
@@ -20,6 +20,8 @@ const initialFormData: CausalInputs = {
   cognitiveBias: '' as CognitiveBias,
   somaticCompulsion: '' as SomaticCompulsion,
   feedbackLoop: '' as FeedbackLoop,
+  emotion: '' as Emotion,
+  intensity: 3, // Default intensity
 };
 
 const MetricDisplay = ({ label, value, colorClass }: { label: string; value: number; colorClass: { text: string; bg: string } }) => (
@@ -104,6 +106,14 @@ const SummaryView = ({ formData, onEdit, onConfirm, isSubmitting }: {
         <p className="font-semibold text-slate-700">5. Bucle de Retroalimentación:</p>
         <p className="text-slate-600">{formData.feedbackLoop}</p>
       </div>
+      <div>
+        <p className="font-semibold text-slate-700">6. Emoción Principal:</p>
+        <p className="text-slate-600">{formData.emotion}</p>
+      </div>
+      <div>
+        <p className="font-semibold text-slate-700">7. Intensidad:</p>
+        <p className="text-slate-600">{formData.intensity} / 5</p>
+      </div>
     </div>
 
     <button
@@ -137,11 +147,16 @@ const CausalMatrixForm = () => {
     setShowSummary(false);
   };
 
-  const handleChange = (field: keyof CausalInputs, value: string) => {
+  const handleChange = (field: keyof CausalInputs, value: string | number) => {
     setFormData(prev => ({ ...prev, [field]: value as any })); // Cast to any for enum type compatibility
   };
 
-  const isFormComplete = Object.values(formData).every(value => value !== '');
+  const isFormComplete = formData.rootWound !== '' && 
+                         formData.triggerEvent !== '' && 
+                         formData.cognitiveBias !== '' && 
+                         formData.somaticCompulsion !== '' && 
+                         formData.feedbackLoop !== '' && 
+                         formData.emotion !== '';
 
   const handleSubmit = async () => {
     if (!user || !isFormComplete) {
@@ -223,7 +238,24 @@ const CausalMatrixForm = () => {
               <SelectField label="3. Distorsión Cognitiva" value={formData.cognitiveBias} onChange={(e) => handleChange('cognitiveBias', e.target.value)} enumObject={CognitiveBias} />
               <SelectField label="4. Compulsión Somática" value={formData.somaticCompulsion} onChange={(e) => handleChange('somaticCompulsion', e.target.value)} enumObject={SomaticCompulsion} />
               <SelectField label="5. Bucle de Retroalimentación" value={formData.feedbackLoop} onChange={(e) => handleChange('feedbackLoop', e.target.value)} enumObject={FeedbackLoop} />
+              <SelectField label="6. Emoción Principal" value={formData.emotion} onChange={(e) => handleChange('emotion', e.target.value)} enumObject={Emotion} />
               
+              <div className="mb-4">
+                <label className="block text-slate-700 text-sm font-bold mb-2">7. Intensidad (1-5)</label>
+                <div className="flex gap-2">
+                  {[1, 2, 3, 4, 5].map(i => (
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() => handleChange('intensity', i)}
+                      className={`flex-1 py-2 rounded-lg border-2 transition-colors ${formData.intensity === i ? 'bg-indigo-600 border-indigo-500 text-white' : 'bg-white border-slate-300 text-slate-700 hover:border-indigo-300'}`}
+                    >
+                      {i}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <button
                 onClick={() => setShowSummary(true)}
                 disabled={!isFormComplete}

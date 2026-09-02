@@ -109,6 +109,7 @@ const History = () => {
                       <div><span className="font-medium text-slate-700">Herida:</span> {matrix.rootWound}</div>
                       <div><span className="font-medium text-slate-700">Disparador:</span> {matrix.triggerEvent}</div>
                       <div><span className="font-medium text-slate-700">Pensamiento:</span> {matrix.cognitiveBias}</div>
+                      <div><span className="font-medium text-slate-700">Emoción:</span> {matrix.emotion} ({matrix.intensity}/5)</div>
                       <div><span className="font-medium text-slate-700">Comportamiento:</span> {matrix.somaticCompulsion}</div>
                       <div className="col-span-2"><span className="font-medium text-slate-700">Consecuencia:</span> {matrix.feedbackLoop}</div>
                     </div>

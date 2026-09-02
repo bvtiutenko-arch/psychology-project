@@ -162,6 +162,8 @@ export async function syncPendingCausalMatrices(userId: string, silent: boolean 
         cognitiveBias: matrix.cognitiveBias,
         somaticCompulsion: matrix.somaticCompulsion,
         feedbackLoop: matrix.feedbackLoop,
+        emotion: matrix.emotion,
+        intensity: matrix.intensity,
         ...matrix.metrics,
         interventionStrategies: matrix.interventionStrategies,
         timestamp: serverTimestamp(),

@@ -273,6 +273,10 @@ const Dashboard = () => {
                     <p className="text-sm font-medium text-slate-800">{latestMatrix.cognitiveBias}</p>
                   </div>
                   <div>
+                    <p className="text-xs text-slate-500">Emoción</p>
+                    <p className="text-sm font-medium text-slate-800">{latestMatrix.emotion} (Intensidad: {latestMatrix.intensity}/5)</p>
+                  </div>
+                  <div>
                     <p className="text-xs text-slate-500">Comportamiento</p>
                     <p className="text-sm font-medium text-slate-800">{latestMatrix.somaticCompulsion}</p>
                   </div>

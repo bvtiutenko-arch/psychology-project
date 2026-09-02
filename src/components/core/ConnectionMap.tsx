@@ -84,6 +84,7 @@ const ConnectionMap = () => {
               <Node label="Herida Raíz" value={selectedMatrix.rootWound} color="bg-red-800" isLast={false} />
               <Node label="Disparador" value={selectedMatrix.triggerEvent} color="bg-blue-500" isLast={false} />
               <Node label="Pensamiento" value={selectedMatrix.cognitiveBias} color="bg-purple-500" isLast={false} />
+              <Node label="Emoción" value={`${selectedMatrix.emotion} (${selectedMatrix.intensity}/5)`} color="bg-pink-500" isLast={false} />
               <Node label="Comportamiento" value={selectedMatrix.somaticCompulsion} color="bg-orange-500" isLast={false} />
               <Node label="Consecuencia" value={selectedMatrix.feedbackLoop} color="bg-red-500" isLast={true} />
 

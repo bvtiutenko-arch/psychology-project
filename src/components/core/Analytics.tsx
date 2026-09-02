@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
-import { getCausalMatrices, getNightModeEntries } from '../../services/db';
+import { getCausalMatrices, getNightModeEntries, getExperiments } from '../../services/db';
 import { CausalMatrix, SomaticCompulsion } from '../../types/causal';
 import { NightModeEntry } from '../../types/nightMode';
+import { Experiment } from '../../types/experiments';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Moon, Repeat, Eye } from 'lucide-react';
+import { ArrowLeft, Moon, Repeat, Eye, Sparkles } from 'lucide-react';
 import { formatDate } from '../../utils/date';
 import { Timestamp } from 'firebase/firestore';
 
@@ -105,7 +106,8 @@ const findRepeatedPatterns = (matrices: CausalMatrix[]): { value: string; count:
     const pairs = [
       `${m.rootWound} → ${m.triggerEvent}`,
       `${m.triggerEvent} → ${m.cognitiveBias}`,
-      `${m.cognitiveBias} → ${m.somaticCompulsion}`,
+      `${m.cognitiveBias} → ${m.emotion}`,
+      `${m.emotion} → ${m.somaticCompulsion}`,
       `${m.somaticCompulsion} → ${m.feedbackLoop}`,
     ];
     pairs.forEach(p => {
@@ -146,6 +148,7 @@ const PeriodSection = ({ title, matrices }: { title: string; matrices: CausalMat
   const frequentRootWound = getMostFrequent(matrices, 'rootWound');
   const frequentTriggerEvent = getMostFrequent(matrices, 'triggerEvent');
   const frequentCognitiveBias = getMostFrequent(matrices, 'cognitiveBias');
+  const frequentEmotion = getMostFrequent(matrices, 'emotion');
   const frequentSomaticCompulsion = getMostFrequent(matrices, 'somaticCompulsion');
   const frequentFeedbackLoop = getMostFrequent(matrices, 'feedbackLoop');
 
@@ -182,6 +185,10 @@ const PeriodSection = ({ title, matrices }: { title: string; matrices: CausalMat
         <div className="flex justify-between items-center pb-2 border-b border-slate-100">
           <span className="text-sm text-slate-500">Pensamiento Frecuente</span>
           <span className="text-sm font-medium text-slate-800">{frequentCognitiveBias}</span>
+        </div>
+        <div className="flex justify-between items-center pb-2 border-b border-slate-100">
+          <span className="text-sm text-slate-500">Emoción Frecuente</span>
+          <span className="text-sm font-medium text-slate-800">{frequentEmotion}</span>
         </div>
         <div className="flex justify-between items-center pb-2 border-b border-slate-100">
           <span className="text-sm text-slate-500">Comportamiento Frecuente</span>
@@ -269,21 +276,46 @@ const CheckingFrequencySection = ({ count, total }: { count: number; total: numb
   );
 };
 
+const HelpfulPatternsSection = ({ experiments }: { experiments: Experiment[] }) => {
+  const successfulExperiments = experiments.filter(e => e.status === 'success');
+  if (successfulExperiments.length === 0) return null;
+  
+  return (
+    <div className="bg-white p-6 rounded-xl shadow-sm mb-6">
+      <h2 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+        <Sparkles className="w-5 h-5 text-green-500" />
+        ¿Qué te ayuda? (Basado en tus experimentos)
+      </h2>
+      <div className="space-y-3">
+        {successfulExperiments.map(exp => (
+          <div key={exp.id} className="flex justify-between items-center pb-2 border-b border-slate-100">
+            <span className="text-sm text-slate-700">{exp.hypothesis}</span>
+            <span className="text-sm font-bold text-green-600 bg-green-50 px-2 py-1 rounded-full">{exp.strategy}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
 const Analytics = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [matrices, setMatrices] = useState<CausalMatrix[]>([]);
   const [nightEntries, setNightEntries] = useState<NightModeEntry[]>([]);
+  const [experiments, setExperiments] = useState<Experiment[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (user) {
       Promise.all([
         getCausalMatrices(user.uid),
-        getNightModeEntries(user.uid)
-      ]).then(([mData, nData]) => {
+        getNightModeEntries(user.uid),
+        getExperiments(user.uid)
+      ]).then(([mData, nData, eData]) => {
         setMatrices(mData);
         setNightEntries(nData);
+        setExperiments(eData);
         setLoading(false);
       }).catch(err => {
         console.error('Error fetching analytics data:', err);
@@ -328,6 +360,7 @@ const Analytics = () => {
           <PeriodSection title="Este Mes" matrices={monthMatrices} />
           <NightModeSection title="Este Mes" entries={monthNightEntries} />
 
+          <HelpfulPatternsSection experiments={experiments} />
           <RepeatedPatternsSection patterns={repeatedPatterns} />
           <CheckingFrequencySection count={checkingFrequency} total={matrices.length} />
 
