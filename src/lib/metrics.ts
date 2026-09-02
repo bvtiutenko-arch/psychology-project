@@ -1,13 +1,3 @@
-import {
-  RootWound,
-  TriggerEvent,
-  CognitiveBias,
-  SomaticCompulsion,
-  FeedbackLoop,
-  MentalMetrics,
-  CausalInputs,
-} from '../types/causal';
-
 /**
  * Determines the appropriate Tailwind CSS color classes based on a metric's value.
  *

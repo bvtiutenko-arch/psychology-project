@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { saveNightModeEntry } from '../../services/db';
 import { savePendingNightModeEntry, syncPendingNightModeEntries } from '../../services/offlineSync';
