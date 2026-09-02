@@ -64,6 +64,7 @@ const signInWithGoogle = async () => {
       email: user.email,
       photoURL: user.photoURL,
       createdAt: new Date(),
+      onboardingCompleted: false, // Add onboarding flag for new users
     });
   }
   return result;

@@ -17,6 +17,7 @@ import { Privacy, Terms, Contact, FAQ, CookiePolicy, LegalNotice } from './compo
 import GroundingExercise from './components/core/GroundingExercise';
 import Experiments from './components/core/Experiments';
 import BottomNav from './components/core/BottomNav';
+import Onboarding from './components/core/Onboarding';
 import { useEffect, useState, useRef, useCallback } from 'react';
 import {
   syncPendingCausalMatrices,
@@ -36,7 +37,7 @@ import { RotateCw, Download } from 'lucide-react';
 const isDevelopment = import.meta.env.DEV;
 
 function App() {
-  const { user, loading } = useAuth();
+  const { user, userProfile, loading } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const prevUserIdRef = useRef<string | null>(null);
@@ -375,17 +376,26 @@ function App() {
             {/* Protected Routes */}
             {user ? (
               <>
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/new-matrix" element={<CausalMatrixForm />} />
-                <Route path="/night-mode" element={<NightMode />} />
-                <Route path="/tomorrow" element={<TomorrowBox />} />
-                <Route path="/analytics" element={<Analytics />} />
-                <Route path="/settings" element={<Settings />} />
-                <Route path="/connection-map" element={<ConnectionMap />} />
-                <Route path="/history" element={<History />} />
-                <Route path="/grounding" element={<GroundingExercise />} />
-                <Route path="/experiments" element={<Experiments />} />
-                <Route path="*" element={<Navigate to="/dashboard" replace />} />
+                {!userProfile?.onboardingCompleted ? (
+                  <>
+                    <Route path="/onboarding" element={<Onboarding />} />
+                    <Route path="*" element={<Navigate to="/onboarding" replace />} />
+                  </>
+                ) : (
+                  <>
+                    <Route path="/dashboard" element={<Dashboard />} />
+                    <Route path="/new-matrix" element={<CausalMatrixForm />} />
+                    <Route path="/night-mode" element={<NightMode />} />
+                    <Route path="/tomorrow" element={<TomorrowBox />} />
+                    <Route path="/analytics" element={<Analytics />} />
+                    <Route path="/settings" element={<Settings />} />
+                    <Route path="/connection-map" element={<ConnectionMap />} />
+                    <Route path="/history" element={<History />} />
+                    <Route path="/grounding" element={<GroundingExercise />} />
+                    <Route path="/experiments" element={<Experiments />} />
+                    <Route path="*" element={<Navigate to="/dashboard" replace />} />
+                  </>
+                )}
               </>
             ) : (
               <>
@@ -395,7 +405,7 @@ function App() {
           </Routes>
         </ErrorBoundary>
       </div>
-      {user && <BottomNav />}
+      {user && userProfile?.onboardingCompleted && <BottomNav />}
     </div>
   );
 }
