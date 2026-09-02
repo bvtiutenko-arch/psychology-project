@@ -123,6 +123,17 @@ export async function saveNightModeEntry(entry: Omit<NightModeEntry, 'id'>): Pro
   return docRef.id;
 }
 
+/**
+ * Retrieves all night mode entries for a specific user, ordered by timestamp descending.
+ * @param userId The ID of the user.
+ * @returns An array of NightModeEntry objects.
+ */
+export async function getNightModeEntries(userId: string): Promise<NightModeEntry[]> {
+  const q = query(collection(db, 'night_mode_entries'), where('userId', '==', userId), orderBy('timestamp', 'desc'));
+  const querySnapshot = await getDocs(q);
+  return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as NightModeEntry));
+}
+
 // --- Tomorrow Box ---
 
 export async function saveTomorrowTask(task: Omit<TomorrowTask, 'id' | 'createdAt' | 'completedAt'>): Promise<string> {

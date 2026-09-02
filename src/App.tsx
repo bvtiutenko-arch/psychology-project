@@ -10,8 +10,9 @@ import TomorrowBox from './components/core/TomorrowBox';
 import Analytics from './components/core/Analytics';
 import Settings from './components/core/Settings';
 import ConnectionMap from './components/core/ConnectionMap';
+import History from './components/core/History';
 import Landing from './components/public/Landing';
-import { Privacy, Terms, Contact, FAQ } from './components/public/LegalPages';
+import { Privacy, Terms, Contact, FAQ, CookiePolicy, LegalNotice } from './components/public/LegalPages';
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { syncPendingCausalMatrices, getPendingCausalMatricesCount, clearPendingCausalMatricesForUser } from './services/offlineSync';
 import { saveSessionHistory } from './services/db';
@@ -257,6 +258,8 @@ function App() {
         <Route path="/terms" element={<Terms />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/faq" element={<FAQ />} />
+        <Route path="/cookies" element={<CookiePolicy />} />
+        <Route path="/legal" element={<LegalNotice />} />
 
         {/* Protected Routes */}
         {user ? (
@@ -268,6 +271,7 @@ function App() {
             <Route path="/analytics" element={<Analytics />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/connection-map" element={<ConnectionMap />} />
+            <Route path="/history" element={<History />} />
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </>
         ) : (
