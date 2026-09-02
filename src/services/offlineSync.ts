@@ -63,10 +63,16 @@ export async function getPendingCausalMatrices(): Promise<PendingCausalMatrix[]>
 
 /**
  * Retrieves the count of pending causal matrices from IndexedDB.
+ * If userId is provided, only counts matrices belonging to that user.
+ * @param userId Optional user ID to filter by. If omitted, counts all.
  */
-export async function getPendingCausalMatricesCount(): Promise<number> {
+export async function getPendingCausalMatricesCount(userId?: string): Promise<number> {
   const database = await initDB();
-  return database.count(STORE_NAME);
+  if (!userId) {
+    return database.count(STORE_NAME);
+  }
+  const allMatrices = await database.getAll(STORE_NAME);
+  return allMatrices.filter(m => m.userId === userId).length;
 }
 
 /**

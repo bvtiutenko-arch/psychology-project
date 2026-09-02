@@ -34,7 +34,7 @@ function App() {
 
   const refreshPendingCount = useCallback(async () => {
     if (user) {
-      const count = await getPendingCausalMatricesCount();
+      const count = await getPendingCausalMatricesCount(user.uid);
       setPendingMatricesCount(count);
     } else {
       setPendingMatricesCount(0);
@@ -108,7 +108,7 @@ function App() {
           try {
             const toastId = toast.loading('Sincronizando matrices pendientes en segundo plano...');
             await syncPendingCausalMatrices(user.uid, true);
-            const newPendingCount = await getPendingCausalMatricesCount();
+            const newPendingCount = await getPendingCausalMatricesCount(user.uid);
             setPendingMatricesCount(newPendingCount);
             toast.dismiss(toastId);
             if (newPendingCount === 0) {
@@ -200,7 +200,7 @@ function App() {
       const toastId = toast.loading('Intentando sincronizar matrices pendientes...');
       try {
         await syncPendingCausalMatrices(user.uid, true);
-        const newPendingCount = await getPendingCausalMatricesCount();
+        const newPendingCount = await getPendingCausalMatricesCount(user.uid);
         setPendingMatricesCount(newPendingCount);
         toast.dismiss(toastId);
 
