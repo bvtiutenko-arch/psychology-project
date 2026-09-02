@@ -5,7 +5,7 @@ import { CausalMatrix } from '../../types/causal';
 import { NightModeEntry } from '../../types/nightMode';
 import { TomorrowTask } from '../../types/tomorrowBox';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Brain, Moon, Calendar, Trash2, Check } from 'lucide-react';
+import { ArrowLeft, Brain, Moon, Calendar, Trash2, Check, Network } from 'lucide-react';
 import { formatDate } from '../../utils/date';
 import toast from 'react-hot-toast';
 
@@ -113,6 +113,12 @@ const History = () => {
                       <div><span className="font-medium text-slate-700">Comportamiento:</span> {matrix.somaticCompulsion}</div>
                       <div className="col-span-2"><span className="font-medium text-slate-700">Consecuencia:</span> {matrix.feedbackLoop}</div>
                     </div>
+                    <button 
+                      onClick={() => navigate(`/connection-map?id=${matrix.id}`)}
+                      className="mt-3 w-full bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium py-2 px-3 rounded-lg flex items-center justify-center gap-1"
+                    >
+                      <Network className="w-4 h-4" /> Ver en Mapa de Conexión
+                    </button>
                   </div>
                 ))}
               </div>
