@@ -12,7 +12,7 @@ export VERTEXAI_LOCATION="global"
 unset OPENROUTER_API_KEY
 unset GEMINI_API_KEY
 unset GOOGLE_API_KEY
-unset GOOGLE_APPLICATION_CREDENTIALS
+# GOOGLE_APPLICATION_CREDENTIALS is intentionally preserved for deployment.
 
 echo "" >> "$LOG"
 echo "==================================================" >> "$LOG"
@@ -159,19 +159,120 @@ Do not get stuck.
 
     # --------------------------------------------------------
     # BUILD AFTER EVERY AIDER CYCLE
+    # TWO BUILD METHODS + FALLBACK
     # --------------------------------------------------------
 
     echo "===== BUILD AFTER CYCLE $CYCLE =====" >> "$LOG"
 
+    BUILD_EXIT=1
+
+    # ========================================================
+    # BUILD METHOD 1: npm run build
+    # ========================================================
+
+    echo "===== BUILD METHOD 1: npm run build =====" >> "$LOG"
+
     npm run build >> "$LOG" 2>&1
     BUILD_EXIT=$?
 
-    echo "BUILD EXIT CODE: $BUILD_EXIT" >> "$LOG"
+    echo "BUILD METHOD 1 EXIT CODE: $BUILD_EXIT" >> "$LOG"
 
     if [ "$BUILD_EXIT" -eq 0 ]; then
-        echo "BUILD SUCCESSFUL" >> "$LOG"
+
+        echo "BUILD METHOD 1 SUCCESSFUL" >> "$LOG"
+
     else
-        echo "BUILD FAILED" >> "$LOG"
+
+        echo "BUILD METHOD 1 FAILED" >> "$LOG"
+
+        # ====================================================
+        # BUILD METHOD 2: direct TypeScript + Vite build
+        # ====================================================
+
+        echo "===== BUILD METHOD 2: npx tsc && npx vite build =====" >> "$LOG"
+
+        npx tsc && npx vite build >> "$LOG" 2>&1
+        BUILD_EXIT=$?
+
+        echo "BUILD METHOD 2 EXIT CODE: $BUILD_EXIT" >> "$LOG"
+
+        if [ "$BUILD_EXIT" -eq 0 ]; then
+            echo "BUILD METHOD 2 SUCCESSFUL" >> "$LOG"
+        else
+            echo "BUILD METHOD 2 FAILED" >> "$LOG"
+        fi
+
+    fi
+
+    # ========================================================
+    # FINAL BUILD RESULT
+    # ========================================================
+
+    if [ "$BUILD_EXIT" -eq 0 ]; then
+        echo "===== FINAL BUILD STATUS: SUCCESS =====" >> "$LOG"
+
+        # --------------------------------------------------------
+        # FIREBASE DEPLOY
+        # --------------------------------------------------------
+
+        echo "===== FIREBASE DEPLOY AFTER SUCCESSFUL BUILD =====" >> "$LOG"
+
+        npm run deploy >> "$LOG" 2>&1
+        DEPLOY_EXIT=$?
+
+        echo "DEPLOY EXIT CODE: $DEPLOY_EXIT" >> "$LOG"
+
+        if [ "$DEPLOY_EXIT" -eq 0 ]; then
+            echo "===== FIREBASE DEPLOY STATUS: SUCCESS =====" >> "$LOG"
+
+            # ----------------------------------------------------
+            # GIT COMMIT
+            # ----------------------------------------------------
+
+            echo "===== GIT COMMIT =====" >> "$LOG"
+
+            git add -A >> "$LOG" 2>&1
+
+            if git diff --cached --quiet; then
+                echo "NO NEW GIT CHANGES TO COMMIT" >> "$LOG"
+            else
+                git commit -m "chore: autonomous development cycle $CYCLE" >> "$LOG" 2>&1
+                COMMIT_EXIT=$?
+
+                echo "COMMIT EXIT CODE: $COMMIT_EXIT" >> "$LOG"
+
+                if [ "$COMMIT_EXIT" -eq 0 ]; then
+                    echo "GIT COMMIT SUCCESSFUL" >> "$LOG"
+                else
+                    echo "GIT COMMIT FAILED" >> "$LOG"
+                fi
+            fi
+
+            # ----------------------------------------------------
+            # GIT PUSH
+            # ----------------------------------------------------
+
+            echo "===== GIT PUSH =====" >> "$LOG"
+
+            git push origin master >> "$LOG" 2>&1
+            PUSH_EXIT=$?
+
+            echo "PUSH EXIT CODE: $PUSH_EXIT" >> "$LOG"
+
+            if [ "$PUSH_EXIT" -eq 0 ]; then
+                echo "GIT PUSH SUCCESSFUL" >> "$LOG"
+            else
+                echo "GIT PUSH FAILED" >> "$LOG"
+            fi
+
+        else
+            echo "===== FIREBASE DEPLOY STATUS: FAILED =====" >> "$LOG"
+            echo "Skipping git push because deployment failed." >> "$LOG"
+        fi
+
+    else
+        echo "===== FINAL BUILD STATUS: FAILED =====" >> "$LOG"
+        echo "Skipping Firebase deployment because build failed." >> "$LOG"
     fi
 
     # --------------------------------------------------------
