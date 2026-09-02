@@ -15,6 +15,7 @@ import {
 import { CausalMatrixData, CausalMatrix } from '../types/causal';
 import { NightModeEntry } from '../types/nightMode';
 import { TomorrowTask } from '../types/tomorrowBox';
+import { Experiment } from '../types/experiments';
 
 export interface TestResult {
   id?: string;
@@ -222,10 +223,55 @@ export async function deleteTomorrowTask(taskId: string): Promise<void> {
   await deleteDoc(taskRef);
 }
 
+// --- Experiments ---
+
+export async function saveExperiment(experiment: Omit<Experiment, 'id' | 'createdAt' | 'completedAt'>): Promise<string> {
+  const docRef = await addDoc(collection(db, 'experiments'), {
+    ...experiment,
+    createdAt: serverTimestamp(),
+    completedAt: null
+  });
+  return docRef.id;
+}
+
+/**
+ * Retrieves all experiments for a specific user, ordered by createdAt descending.
+ * Sorting is done client-side to avoid requiring composite indexes in Firestore.
+ * @param userId The ID of the user.
+ * @returns An array of Experiment objects.
+ */
+export async function getExperiments(userId: string): Promise<Experiment[]> {
+  const q = query(collection(db, 'experiments'), where('userId', '==', userId));
+  const querySnapshot = await getDocs(q);
+  const experiments = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Experiment));
+  
+  experiments.sort((a, b) => {
+    const getTime = (timestamp: any) => {
+      if (timestamp instanceof Timestamp) return timestamp.toMillis();
+      if (timestamp instanceof Date) return timestamp.getTime();
+      if (timestamp && typeof timestamp.seconds === 'number') return timestamp.seconds * 1000;
+      return 0;
+    };
+    return getTime(b.createdAt) - getTime(a.createdAt);
+  });
+  
+  return experiments;
+}
+
+export async function updateExperiment(experimentId: string, updates: Partial<Experiment>): Promise<void> {
+  const expRef = doc(db, 'experiments', experimentId);
+  await updateDoc(expRef, updates);
+}
+
+export async function deleteExperiment(experimentId: string): Promise<void> {
+  const expRef = doc(db, 'experiments', experimentId);
+  await deleteDoc(expRef);
+}
+
 // --- Privacy / Data Management ---
 
 export async function deleteAllUserData(userId: string): Promise<void> {
-  const collectionsToDelete = ['causal_matrices', 'night_mode_entries', 'tomorrow_tasks', 'testResults', 'sessionHistory'];
+  const collectionsToDelete = ['causal_matrices', 'night_mode_entries', 'tomorrow_tasks', 'testResults', 'sessionHistory', 'experiments'];
   
   for (const colName of collectionsToDelete) {
     const q = query(collection(db, colName), where('userId', '==', userId));
@@ -240,7 +286,7 @@ export async function deleteAllUserData(userId: string): Promise<void> {
 
 export async function exportUserData(userId: string): Promise<Record<string, any>> {
   const data: Record<string, any> = {};
-  const collectionsToExport = ['causal_matrices', 'night_mode_entries', 'tomorrow_tasks', 'testResults', 'sessionHistory'];
+  const collectionsToExport = ['causal_matrices', 'night_mode_entries', 'tomorrow_tasks', 'testResults', 'sessionHistory', 'experiments'];
   
   for (const colName of collectionsToExport) {
     const q = query(collection(db, colName), where('userId', '==', userId));

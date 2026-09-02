@@ -4,7 +4,7 @@ import { getCausalMatrices } from '../../services/db';
 import { CausalMatrix } from '../../types/causal';
 import { useEffect, useState, ReactNode } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Plus, Moon, Activity, Heart, TrendingDown, Sparkles, Calendar, BarChart, Settings, Network, History, Lightbulb, Anchor } from 'lucide-react';
+import { Plus, Moon, Activity, Heart, TrendingDown, Sparkles, Calendar, BarChart, Settings, Network, History, Lightbulb, Anchor, FlaskConical } from 'lucide-react';
 import { Timestamp } from 'firebase/firestore';
 import { getMetricColorClass } from '../../lib/metrics';
 
@@ -169,6 +169,7 @@ const Dashboard = () => {
         <NavCard icon={<BarChart className="w-6 h-6" />} title="Análisis" path="/analytics" color="bg-green-500" />
         <NavCard icon={<History className="w-6 h-6" />} title="Historial" path="/history" color="bg-teal-500" />
         <NavCard icon={<Anchor className="w-6 h-6" />} title="Ejercicio de Anclaje" path="/grounding" color="bg-cyan-500" />
+        <NavCard icon={<FlaskConical className="w-6 h-6" />} title="Experimentos" path="/experiments" color="bg-pink-500" />
         <NavCard icon={<Settings className="w-6 h-6" />} title="Ajustes" path="/settings" color="bg-slate-500" />
       </div>
 

@@ -15,6 +15,7 @@ import History from './components/core/History';
 import Landing from './components/public/Landing';
 import { Privacy, Terms, Contact, FAQ, CookiePolicy, LegalNotice } from './components/public/LegalPages';
 import GroundingExercise from './components/core/GroundingExercise';
+import Experiments from './components/core/Experiments';
 import BottomNav from './components/core/BottomNav';
 import { useEffect, useState, useRef, useCallback } from 'react';
 import {
@@ -383,6 +384,7 @@ function App() {
                 <Route path="/connection-map" element={<ConnectionMap />} />
                 <Route path="/history" element={<History />} />
                 <Route path="/grounding" element={<GroundingExercise />} />
+                <Route path="/experiments" element={<Experiments />} />
                 <Route path="*" element={<Navigate to="/dashboard" replace />} />
               </>
             ) : (

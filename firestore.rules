@@ -58,5 +58,12 @@ service cloud.firestore {
       allow create: if request.auth.uid == request.resource.data.userId;
       allow update: if request.auth.uid == resource.data.userId && request.resource.data.userId == resource.data.userId;
     }
+
+    // Users can read and write their own experiments, ensuring they own the record
+    match /experiments/{experimentId} {
+      allow read, delete: if request.auth.uid == resource.data.userId;
+      allow create: if request.auth.uid == request.resource.data.userId;
+      allow update: if request.auth.uid == resource.data.userId && request.resource.data.userId == resource.data.userId;
+    }
   }
 }
