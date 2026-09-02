@@ -1,9 +1,0 @@
-const NavCard = ({ icon, title, path, color }: { icon: ReactNode; title: string; path: string; color: string }) => (
-  <Link 
-    to={path}
-    className={`${color} text-white p-4 rounded-xl shadow-sm hover:opacity-90 transition-opacity flex flex-col items-center justify-center gap-2`}
-  >
-    {icon}
-    <span className="font-medium text-sm">{title}</span>
-  </Link>
-);
