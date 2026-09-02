@@ -236,7 +236,29 @@ function App() {
 
   return (
     <div className="h-screen bg-slate-50 text-slate-800 font-sans flex flex-col overflow-hidden">
-      <Toaster position="top-center" reverseOrder={false} />
+      <Toaster 
+        position="top-center" 
+        reverseOrder={false} 
+        toastOptions={{
+          style: {
+            borderRadius: '12px',
+            background: '#1e293b', // slate-800
+            color: '#fff',
+          },
+          success: {
+            iconTheme: {
+              primary: '#22c55e', // green-500
+              secondary: '#fff',
+            },
+          },
+          error: {
+            iconTheme: {
+              primary: '#ef4444', // red-500
+              secondary: '#fff',
+            },
+          },
+        }}
+      />
       <div className={`flex-shrink-0 p-1 text-center text-xs font-medium z-50 flex items-center justify-center gap-2 flex-nowrap overflow-x-auto
                   ${isOnline ? 'bg-green-500 text-white' : 'bg-red-500 text-white'}`}>
         <span>{isOnline ? 'Online' : 'Offline'}</span>

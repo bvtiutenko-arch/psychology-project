@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { exportUserData, deleteAllUserData } from '../../services/db';
+import { clearPendingCausalMatricesForUser } from '../../services/offlineSync';
 import { auth } from '../../firebase';
 import { ArrowLeft, Download, Trash2, LogOut } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -23,6 +24,7 @@ const Settings = () => {
       URL.revokeObjectURL(url);
       toast.success('Datos exportados.');
     } catch (error) {
+      console.error('Error exporting data:', error);
       toast.error('Error al exportar datos.');
     }
   };
@@ -32,9 +34,11 @@ const Settings = () => {
     if (window.confirm('¿Estás seguro? Esta acción no se puede deshacer. Se eliminarán todos tus registros.')) {
       try {
         await deleteAllUserData(user.uid);
+        await clearPendingCausalMatricesForUser(user.uid); // Clear local pending data
         toast.success('Todos tus datos han sido eliminados.');
         navigate('/dashboard');
       } catch (error) {
+        console.error('Error deleting data:', error);
         toast.error('Error al eliminar datos.');
       }
     }

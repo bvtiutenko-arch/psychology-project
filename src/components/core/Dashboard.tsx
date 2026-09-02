@@ -16,17 +16,18 @@ const MetricCard = ({ title, value, change, invertColor }: { title: string; valu
       </div>
     );
   }
-  const isPositive = invertColor ? change! < 0 : change! > 0;
-  const changeColor = change === null || change === 0 ? 'text-slate-400' : isPositive ? 'text-green-500' : 'text-red-500';
+  const safeChange = change ?? 0;
+  const isPositive = invertColor ? safeChange < 0 : safeChange > 0;
+  const changeColor = safeChange === 0 ? 'text-slate-400' : isPositive ? 'text-green-500' : 'text-red-500';
   
   return (
     <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
       <h3 className="text-sm text-slate-500 mb-1">{title}</h3>
       <div className="flex items-baseline gap-2">
         <p className="text-2xl font-bold text-slate-800">{value}%</p>
-        {change !== null && change !== 0 && (
+        {safeChange !== 0 && (
           <span className={`text-xs font-medium ${changeColor}`}>
-            {change! > 0 ? '↑' : '↓'} {Math.abs(change!)}
+            {safeChange > 0 ? '↑' : '↓'} {Math.abs(safeChange)}
           </span>
         )}
       </div>
